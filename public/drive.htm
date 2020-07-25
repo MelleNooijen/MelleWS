@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  </head>
+  <body>
+    <div class="w3-container w3-teal w3-padding-32 w3-animate-top">
+      <img 
+        src="/images/logo-white-v2.svg"
+        alt="MelleWS"
+        height="36"
+        class="w3-display-topmiddle w3-margin" />
+    </div>
+    <div class="w3-card w3-margin" style="width: 25%">
+        <div class="w3-container w3-teal">
+          <h2>Upload</h2>
+        </div>
+        <form class="w3-container w3-padding" action="upl" method="post" enctype="multipart/form-data" width=30>
+            <input class="w3-input" type="text" name="usrID" placeholder="User ID">
+            <input class="w3-input" type="file" name="filetoupload" required>
+            <input class="w3-button" type="submit">
+        </form>
+    </div>
+  </body>
+</html>

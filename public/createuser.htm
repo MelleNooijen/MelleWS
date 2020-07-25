@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  </head>
+  <body>
+    <div class="w3-container w3-teal w3-padding-32 w3-animate-top">
+      <img 
+        src="/images/logo-white-v2.svg"
+        alt="MelleWS"
+        height="36"
+        class="w3-display-topmiddle w3-margin" />
+    </div>
+    <div class="w3-container w3-center">
+      <h1>Create a user</h1>
+      <p>This will create a User ID which will appear when registered.</br>With your User ID, you can access your Drive and Database.</p>
+      <div class="w3-bar">
+        <form class="w3-container w3-padding" action="/createuid" method="POST">
+            <input class="w3-input" type="text" name="usnm" placeholder="Username" required>
+            <input class="w3-input" type="email" name="mailad" placeholder="E-mail" required>
+            <input class="w3-button w3-teal w3-margin-top" type="submit" name="sbmt">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
