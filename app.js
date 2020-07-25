@@ -11,7 +11,7 @@ var usersRouter = require('./routes/users');
 const Keyv = require('keyv');
 const keyv = new Keyv('sqlite://login.sqlite');
 var app = express();
-var erVar = "Test melle";
+var erVar = "No error defined";
 var outputVar = "The applet did not provide any output.";
 app.use(logger('dev'));
 app.use(express.json());
@@ -38,17 +38,27 @@ app.post('/upl', async function(req, res){
         res.end();
       }
       else {
-        console.log(files.filetoupload.path)
-        var oldpath = files.filetoupload.path;
-        var newpath = path.join(__dirname, "public\\upload\\") + files.filetoupload.name;
-        //
-        console.log(newpath);
-        fs.rename(oldpath, newpath, function (err) {
-          if (err) throw err;
-          outputVar = "File uploaded successfully and can be found at /upload/" + files.filetoupload.name + ".";
-          res.redirect("success.html");
+        var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
+        console.log(filenameToUpload);
+        var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+        if (filenameToUpload.match(invalidCharsT)) {
+          erVar = ("Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+          res.redirect("interr.html");
           res.end();
-        });
+        }
+        else {
+          console.log(files.filetoupload.path);
+          var oldpath = files.filetoupload.path;
+          var newpath = path.join(__dirname, "public\\upload\\") + filenameToUpload;
+          //
+          console.log(newpath);
+          fs.rename(oldpath, newpath, function (err) {
+            if (err) throw err;
+            outputVar = "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".";
+            res.redirect("success.html");
+            res.end();
+          });
+        }
       }
     }
     else {
@@ -149,6 +159,9 @@ app.get('/applout', function(req, res, next){
   console.log(outputVar);
   res.write(outputVar);
   res.end("<br/>End of output..");
+});
+app.get("/inputtest2", function(req, res, next){
+
 });
 app.use(function(req, res, next){
     res.redirect("404.htm");
