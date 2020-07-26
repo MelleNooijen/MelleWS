@@ -2,25 +2,52 @@
   <head>
     <title>MelleWS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="./stylesheets/basic.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+      body,h1 {font-family: "Raleway", sans-serif}
+      body, html {height: 100%}
+      .bgimg {
+        min-height: 100%;
+        background-position: center;
+        background-size: cover;
+      }
+    </style>
   </head>
   <body>
-    <div class="w3-container w3-teal w3-padding-32 w3-animate-top">
-      <img 
-        src="/images/logo-white-v2.svg"
-        alt="MelleWS"
-        height="36"
-        class="w3-display-topmiddle w3-margin" />
-    </div>
-    <div class="w3-container w3-center">
-      <h1>Welcome to MelleWS!</h1>
-      <p>Please select the service you want to use.</p>
-      <div class="w3-bar">
-        <a href="/drive.htm" class="w3-button w3-teal">MWSDrive</a>
-        <a href="/" class="w3-button w3-teal w3-disabled">Direct link</a>
-        <a href="/" class="w3-button w3-teal w3-disabled">FreeDB</a>
+    <script>
+      var images = ['bg1.svg', 'bg2.svg', 'bg3.svg', 'bg4.svg', 'bg5.svg'];
+      $('body').css({'background-image': 'url(../images/' + images[Math.floor(Math.random() * images.length)] + ')'});
+      console.log('url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
+    </script>
+    <div class="w3-top">
+      <div class="w3-bar w3-white w3-padding w3-card">
+        <a href="index.html"><img 
+          src="./images/logo-black-v2.svg"
+          alt="MelleWS"
+          height="36"
+          class=""/></a>
+        <div class="w3-right w3-hide-small">
+          <a href="drive.htm" class="w3-bar-item w3-button w3-round-xxlarge">MWSDrive</a>
+          <a href="" class="w3-bar-item w3-button w3-disabled w3-round-xxlarge">FreeDB</a>
+          <a href="info.htm" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
+          <a href="createuser.htm" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><b>Sign Up</b></a>
+        </div>
       </div>
-    <br/><a href="/createuser.htm" class="w3-button w3-orange w3-text-white w3-margin">Create account</a>
+    </div>
+    <div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
+      <div class="w3-display-middle">
+        <h1 class="w3-jumbo w3-animate-top"><b>MelleWS</b></h1>
+        <hr class="w3-border-grey" style="margin:auto;width:50%">
+        <p class="w3-large w3-center"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
+      </div>
+      <div class="w3-display-bottomleft w3-padding-large w3-text-black">
+        © Melle Nooijen
+      </div>
     </div>
   </body>
 </html>
