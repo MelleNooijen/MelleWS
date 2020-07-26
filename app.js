@@ -47,17 +47,24 @@ app.post('/upl', async function(req, res){
           res.end();
         }
         else {
-          console.log(files.filetoupload.path);
-          var oldpath = files.filetoupload.path;
-          var newpath = path.join(__dirname, "public\\upload\\") + filenameToUpload;
-          //
-          console.log(newpath);
-          fs.rename(oldpath, newpath, function (err) {
-            if (err) throw err;
-            outputVar = "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".";
-            res.redirect("success.html");
+          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
+            erVar = ("Encountered an error! (04: Malicious file detected.<br/>The file you were trying to upload was detected as malicious.");
+            res.redirect("interr.html");
             res.end();
-          });
+          }
+          else {
+            console.log(files.filetoupload.path);
+            var oldpath = files.filetoupload.path;
+            var newpath = path.join(__dirname, "public\\upload\\") + filenameToUpload;
+            //
+            console.log(newpath);
+            fs.rename(oldpath, newpath, function (err) {
+              if (err) throw err;
+              outputVar = "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".";
+              res.redirect("success.html");
+              res.end();
+            });
+          }
         }
       }
     }
