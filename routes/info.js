@@ -1,10 +1,10 @@
-// router for index page
+// router for info page
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { req: req }); // renders home page
+/* GET info page. */
+router.get('/info', function(req, res, next) {
+  res.render('info', { req: req }); // renders info page
   console.log(req.headers['x-forwarded-for'] || req.connection.remoteAddress); // used for testing ;)
 });
 

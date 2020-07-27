@@ -1,10 +1,10 @@
-// router for index page
+// router for drive page
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { req: req }); // renders home page
+/* GET drive page. */
+router.get('/drive', function(req, res, next) {
+  res.render('drive', { req: req }); // renders drive page
   console.log(req.headers['x-forwarded-for'] || req.connection.remoteAddress); // used for testing ;)
 });
 

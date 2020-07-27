@@ -1,9 +1,2 @@
-var express = require('express');
-var router = express.Router();
-
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.redirect("404.htm");
-});
-
-module.exports = router;
+console.log('Started.');
+// this is some weird thing from Express, it runs this at startup for some reason
