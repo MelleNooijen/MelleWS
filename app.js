@@ -21,7 +21,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+// app.use(logger('dev')); // disble for prod
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -31,7 +31,28 @@ app.use('/', indexRouter);
 app.get('/drive', driveRouter);
 app.get('/info', infoRouter);
 app.get('/signup', uidRouter);
-
+// test HTTP codes
+app.get('/200', function(req, res){
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.write("Success");
+  res.end();
+});
+app.get('/intsererr', function(req, res){
+  res.writeHead(500, {'Content-Type': 'text/plain'});
+  res.write("Internal server error");
+  res.end();
+});
+app.get('/teapot', function(req, res){
+  res.writeHead(418, {'Content-Type': 'text/plain'});
+  res.write("I am a teapot! | 418");
+  res.end();
+});
+app.get('/weed', function(req, res){
+  res.writeHead(420, {'Content-Type': 'text/plain'});
+  res.write("Calm. | 420");
+  res.end();
+});
+// ---
 app.post('/upl', async function(req, res){
   var form = new formidable.IncomingForm();
   // path.join(__dirname, "public\\upload\\")
@@ -40,18 +61,18 @@ app.post('/upl', async function(req, res){
     if (fields.usrID) {
       const getResult = await keyv.get(fields.usrID);
       if (getResult === void(0)) {
-        reportErr(res, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
+        reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
       }
       else {
         var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
         console.log(filenameToUpload);
         var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
         if (filenameToUpload.match(invalidCharsT)) {
-          reportErr(res, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+          reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
         }
         else {
           if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
-            reportErr(res, "Encountered an error! (04: Malicious file detected.<br/>The file you were trying to upload was detected as malicious.");
+            reportErr(res, req, "Encountered an error! (04: Malicious file detected.<br/>The file you were trying to upload was detected as malicious.");
           }
           else {
             console.log(files.filetoupload.path);
@@ -68,7 +89,7 @@ app.post('/upl', async function(req, res){
       }
     }
     else {
-      reportErr(res, "No User ID (code 01).");
+      reportErr(res, req, "No User ID (code 01).");
     }
   });
 });
@@ -78,7 +99,7 @@ app.post('/createuid', function(req, res){
   var usernameStr = req.body.usnm;
   var invalidChars = /[!@#^\&\*\(\)_=\{\}\[\]\\|:;“‘<>,\?]/;
   if (/\s/.test(usernameStr) || usernameStr.match(invalidChars)) {
-    reportErr(res, "Encountered an error! (02: String contains invalid characters).\nYour username contains a prohibited character.")
+    reportErr(res, req, "Encountered an error! (02: String contains invalid characters).\nYour username contains a prohibited character.")
   }
   else {
     console.log("Created object for User " + usID);

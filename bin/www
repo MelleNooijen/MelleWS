@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('mellews-noview:server');
 var http = require('http');
+var colors = require('colors');
 
 /**
  * Get port from environment and store in Express.
@@ -20,7 +21,6 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
-
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -28,6 +28,7 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+server.on('request', onRequest);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -87,4 +88,34 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
+}
+function onRequest(request, req) {
+  var res = req.req.res;
+  var reqMeth = req.req.method;
+  var reqReso = req.req.path;
+  var reqIp = req.req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var reqTime = new Date;
+  if (reqIp == "::1") {
+    reqIp = "local";
+  }
+  console.log(colors.yellow("[Request]") + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
+  res.on('finish', function () {
+    var codeString = res.statusCode.toString();
+    if (codeString.startsWith("2")) {
+      var statCol = colors.green;
+    }
+    else if (codeString.startsWith("3")) {
+      var statCol = colors.cyan;
+    }
+    else if (codeString.startsWith("4")) {
+      var statCol = colors.yellow;
+    }
+    else if (codeString.startsWith("5")) {
+      var statCol = colors.red;
+    }
+    else {
+      var statCol = colors.grey;
+    }
+    console.log(colors.cyan("[Response]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
+  });
 }
