@@ -61,7 +61,7 @@ app.post('/upl', async function(req, res){
             console.log(newpath);
             fs.rename(oldpath, newpath, function (err) {
               if (err) throw err;
-              reportSuccess(req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
+              reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
             });
           }
         }
@@ -132,9 +132,9 @@ app.use(function(err, req, res, next) {
   res.render('error', { req: req });
 });
 function reportErr(res, req, errStr) {
-  res.render("interr", { req: req, errString: errStr });
+  res.render("interr", { req: req, errString: errStr }); // render interr
 }
 function reportSuccess(res, req, sucStr) {
-  res.render("success", { req: req, sucString: sucStr });
+  res.render("success", { req: req, sucString: sucStr }); // render success
 }
 module.exports = app;
