@@ -47,6 +47,24 @@ app.post('/httptest', function(req, res){
   res.end();
 });
 // ---
+// reqtest
+app.get('/reqtest', function(req, res){
+  res.send('<form method="get" action="/reqtesthandle">'
+    + '<input type="text" name="tBox"/>'
+    + '<input type="submit" value="Submit"/></form>' );
+  console.log(url.parse(req.href));
+  res.end();
+});
+app.get('/reqtesthandle', function(req, res){
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  console.log(req);
+  console.log(url.parse(req._parsedOriginalUrl.href));
+  var parsedUrlString = url.parse(req._parsedOriginalUrl.href.toString());
+  res.write("Request received, looks like:<br/>");
+  res.write("<pre>" + parsedUrlString + "</pre>");
+  res.end();
+});
+// ---
 app.post('/upl', async function(req, res){
   var form = new formidable.IncomingForm();
   // path.join(__dirname, "public\\upload\\")
