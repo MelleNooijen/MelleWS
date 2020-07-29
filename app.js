@@ -14,6 +14,7 @@ var infoRouter = require('./routes/info');
 
 const Keyv = require('keyv');
 const { info } = require('console');
+const { report } = require('./routes/index');
 const keyv = new Keyv('sqlite://login.sqlite');
 var app = express();
 
@@ -32,24 +33,16 @@ app.get('/drive', driveRouter);
 app.get('/info', infoRouter);
 app.get('/signup', uidRouter);
 // test HTTP codes
-app.get('/200', function(req, res){
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.write("Success");
-  res.end();
+app.get('/httptest', function(req, res){
+  res.send('<form method="post">'
+    + '<input type="text" name="resNum"/>'
+    + '<input type="submit" value="Submit"/></form>'
+    + '<p>Note that 100 and 101 may freeze your browser.</p>');
 });
-app.get('/intsererr', function(req, res){
-  res.writeHead(500, {'Content-Type': 'text/plain'});
-  res.write("Internal server error");
-  res.end();
-});
-app.get('/teapot', function(req, res){
-  res.writeHead(418, {'Content-Type': 'text/plain'});
-  res.write("I am a teapot! | 418");
-  res.end();
-});
-app.get('/weed', function(req, res){
-  res.writeHead(420, {'Content-Type': 'text/plain'});
-  res.write("Calm. | 420");
+app.post('/httptest', function(req, res){
+  var codeTs = req.body.resNum;
+  res.writeHead(codeTs, {'Content-Type': 'text/plain'});
+  res.write("Wrote code " + codeTs + ".");
   res.end();
 });
 // ---
@@ -72,18 +65,24 @@ app.post('/upl', async function(req, res){
         }
         else {
           if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
-            reportErr(res, req, "Encountered an error! (04: Malicious file detected.<br/>The file you were trying to upload was detected as malicious.");
+            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
           }
           else {
-            console.log(files.filetoupload.path);
-            var oldpath = files.filetoupload.path;
-            var newpath = path.join(__dirname, "public\\upload\\") + filenameToUpload;
-            //
-            console.log(newpath);
-            fs.rename(oldpath, newpath, function (err) {
-              if (err) throw err;
-              reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
-            });
+            var flSz = files.filetoupload.size / 1000000;
+            flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
+            if (flSz > 100) {
+              reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
+            }
+            else {
+              var safeName = filenameToUpload;
+              stringEscape(safeName);
+              var oldpath = files.filetoupload.path;
+              var newpath = path.join(__dirname, "public\\upload\\") + safeName;
+              fs.rename(oldpath, newpath, function (err) {
+                if (err) throw err;
+                reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
+              });
+            }
           }
         }
       }
@@ -157,5 +156,9 @@ function reportErr(res, req, errStr) {
 }
 function reportSuccess(res, req, sucStr) {
   res.render("success", { req: req, sucString: sucStr }); // render success
+}
+function stringEscape(s) {
+  return s ? s.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/\t/g,'\\t').replace(/\v/g,'\\v').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/[\x00-\x1F\x80-\x9F]/g,hex) : s;
+  function hex(c) { var v = '0'+c.charCodeAt(0).toString(16); return '\\x'+v.substr(v.length-2); }
 }
 module.exports = app;
