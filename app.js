@@ -41,8 +41,9 @@ app.get('/httptest', function(req, res){
 });
 app.post('/httptest', function(req, res){
   var codeTs = req.body.resNum;
-  res.writeHead(codeTs, {'Content-Type': 'text/plain'});
-  res.write("Wrote code " + codeTs + ".");
+  res.writeHead(codeTs, {'Content-Type': 'text/html'});
+  res.write("<p>Wrote code " + codeTs + ".</p>");
+  res.write("<img src='https://http.cat/" + codeTs + "'/>")
   res.end();
 });
 // ---
