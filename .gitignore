@@ -1,6 +1,7 @@
 # MelleWS stuff
 public/upload/
 login.sqlite
+sslcert/
 # Logs
 logs
 *.log

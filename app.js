@@ -11,6 +11,7 @@ var usersRouter = require('./routes/users');
 var driveRouter = require('./routes/drive');
 var uidRouter = require('./routes/uidcreator');
 var infoRouter = require('./routes/info');
+var convRouter = require('./routes/convert');
 
 const Keyv = require('keyv');
 const { info } = require('console');
@@ -32,6 +33,7 @@ app.use('/', indexRouter);
 app.get('/drive', driveRouter);
 app.get('/info', infoRouter);
 app.get('/signup', uidRouter);
+app.get('/convert', convRouter);
 // test HTTP codes
 app.get('/httptest', function(req, res){
   res.send('<form method="post">'

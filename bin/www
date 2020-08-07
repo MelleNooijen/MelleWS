@@ -3,11 +3,16 @@
 /**
  * Module dependencies.
  */
-
+var fs = require("fs");
 var app = require('../app');
 var debug = require('debug')('mellews-noview:server');
-var http = require('http');
+var legHttp = require('http');
+var http = require('https');
+var https = require('https');
+var privateKey  = fs.readFileSync('sslcert/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
 var colors = require('colors');
+var credentials = {key: privateKey, cert: certificate};
 
 /**
  * Get port from environment and store in Express.
@@ -19,16 +24,21 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-
-var server = http.createServer(app);
+var legacyServer = legHttp.createServer(app);
+var server = http.createServer(credentials, app);
+var httpsServer = https.createServer(credentials, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-
-server.listen(port);
+legacyServer.listen(80);
+server.listen(443);
+httpsServer.listen(8443);
 server.on('error', onError);
 server.on('listening', onListening);
 server.on('request', onRequest);
+httpsServer.on('error', onError);
+httpsServer.on('listening', onListening);
+httpsServer.on('request', onSecRequest);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -117,5 +127,35 @@ function onRequest(request, req) {
       var statCol = colors.grey;
     }
     console.log(colors.cyan("[Response]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
+  });
+}
+function onSecRequest(request, req) {
+  var res = req.req.res;
+  var reqMeth = req.req.method;
+  var reqReso = req.req.path;
+  var reqIp = req.req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var reqTime = new Date;
+  if (reqIp == "::1") {
+    reqIp = "local";
+  }
+  console.log(colors.yellow("[Request]") + colors.green(" [S]") + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
+  res.on('finish', function () {
+    var codeString = res.statusCode.toString();
+    if (codeString.startsWith("2")) {
+      var statCol = colors.green;
+    }
+    else if (codeString.startsWith("3")) {
+      var statCol = colors.cyan;
+    }
+    else if (codeString.startsWith("4")) {
+      var statCol = colors.yellow;
+    }
+    else if (codeString.startsWith("5")) {
+      var statCol = colors.red;
+    }
+    else {
+      var statCol = colors.grey;
+    }
+    console.log(colors.cyan("[Response]") + colors.green(" [S]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
   });
 }
