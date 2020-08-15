@@ -16,7 +16,7 @@
           <h2>Upload</h2>
         </div>
         <form class="w3-container w3-padding" action="upl" method="post" enctype="multipart/form-data" width=30>
-            <input class="w3-input" type="text" name="usrID" placeholder="User ID">
+            <input class="w3-input" type="text" name="usrID" placeholder="User ID" value="<%= req.cookies.idCookie %>">
             <input class="w3-input" type="file" name="filetoupload" required>
             <input class="w3-button" type="submit">
         </form>

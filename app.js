@@ -12,6 +12,8 @@ var driveRouter = require('./routes/drive');
 var uidRouter = require('./routes/uidcreator');
 var infoRouter = require('./routes/info');
 var convRouter = require('./routes/convert');
+var loginRouter = require('./routes/login');
+var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
 const Keyv = require('keyv');
 const { info } = require('console');
@@ -34,6 +36,8 @@ app.get('/drive', driveRouter);
 app.get('/info', infoRouter);
 app.get('/signup', uidRouter);
 app.get('/convert', convRouter);
+app.get('/login', loginRouter);
+
 // test HTTP codes
 app.get('/httptest', function(req, res){
   res.send('<form method="post">'
@@ -123,35 +127,46 @@ app.post('/createuid', function(req, res){
   }
   else {
     console.log("Created object for User " + usID);
-    res.cookie('userCookie', usernameStr);
+    res.cookie('userCookie', usernameStr, { maxAge: xyears });
     reportSuccess(res, req, usernameStr + ", your user ID is " + usID + ".\nYou can now log in.")
     var userObject = {name:req.body.usnm, email:req.body.mailad, pro:false};
     console.log(userObject);
     var usIDstr = usID.toString();
+    res.cookie('idCookie', usIDstr, { maxAge: xyears });
     keyv.set(usIDstr, userObject);
   }
 });
-app.get("/curl", function(req, res){
+app.get("/api/ping", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
-  res.write("\n  Welcome to MelleWS' cURL portal. Here, you can check the status of MelleWS' servers and see other data.\n");
-  res.write("\n  Main: [Online]\n  Drive: [Online]\n");
+  res.write("\n  You successfully pinged the MelleWS API!\n");
   res.end("\n -- end of response -- " + new Date());
-  console.log(res);
 });
-app.get('/cookietest', function(req, res){
+app.get('/login', function(req, res){
   if (req.cookies.userCookie) {
-    res.send("UserObject in storage: " + req.cookies.userCookie + '. Click to <a href="/forget">forget</a>!.');
-    console.log(req.cookies.userCookie);
+    res.send("You are already logged in as " + req.cookies.userCookie + '. Click to <a href="/forget">log out</a>.');
   } else {
     res.send('<form method="post">'
       + '<input type="text" name="textB"/>'
       + '<input type="submit" value="Submit"/></form>');
   }
 });
-app.post('/cookietest', function(req, res){
-  if (req.body.textB) res.cookie('userCookie', req.body.textB);
-  res.redirect('back');
+app.post('/login', async function(req, res){
+  if (req.body.textB) {
+    var resUsOb = await keyv.get(req.body.textB);
+    if (resUsOb) {
+      console.log(resUsOb.name);
+      res.cookie('idCookie', req.body.textB, { maxAge: xyears });
+      res.cookie('userCookie', resUsOb.name, { maxAge: xyears });
+      res.redirect('back');
+    }
+    else {
+      reportErr(res, req, "User ID not found.");
+    }
+  }
+  else {
+    reportErr(res, req, "No data passed.");
+  }
 });
 app.get('/forget', function(req, res){
   res.clearCookie('userCookie');

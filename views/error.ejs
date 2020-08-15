@@ -19,6 +19,7 @@
             <a href="" class="w3-bar-item w3-button w3-disabled w3-round-xxlarge">FreeDB</a>
             <a href="info" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
             <% if (!req.cookies.userCookie) { %>
+              <a href="login" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><strong>Log in</strong></a>
               <a href="signup" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><b>Sign Up</b></a>
             <% } %>
           </div>
@@ -26,7 +27,7 @@
     </div>
     </div>
     <div class="w3-container w3-display-middle">
-      <h1>Error! | <%= error.status %></h1>
+      <h1>Error! | <%= error.status || "Script Error" %></h1>
       <h3>An error occurred accessing the requested resource.</h3>
       <p>Please check if you spelled the request correctly, if the resource is still available, and if you are authorised to see the resource.<br />There is more detailed error info below.</p>
       <pre><%= error.message %></pre>

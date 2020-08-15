@@ -5,7 +5,7 @@
     <div class="w3-top">
       <div class="w3-bar w3-red w3-padding w3-card">
         <a href="/"><img 
-          src="./images/logo-black-v2.svg"
+          src="./images/logo-white-v2.svg"
           alt="MelleWS"
           height="36"
           class=""/></a>
@@ -19,6 +19,7 @@
             <a href="" class="w3-bar-item w3-button w3-disabled w3-round-xxlarge">FreeDB</a>
             <a href="info" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
             <% if (!req.cookies.userCookie) { %>
+              <a href="login" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><strong>Log in</strong></a>
               <a href="signup" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><b>Sign Up</b></a>
             <% } %>
           </div>
