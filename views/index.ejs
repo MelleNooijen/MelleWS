@@ -25,28 +25,7 @@
       $('body').css({'background-image': 'url(../images/' + images[Math.floor(Math.random() * images.length)] + ')'});
       console.log('url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
     </script>
-    <div class="w3-top">
-      <div class="w3-bar w3-white w3-padding w3-card">
-        <a href="index.html"><img 
-          src="./images/logo-black-v2.svg"
-          alt="MelleWS"
-          height="36"
-          class=""/></a>
-        <div class="w3-display-topmiddle w3-hide-small">
-          <% if (req.cookies.userCookie) { %>
-            <p>Hi, <%= req.cookies.userCookie %></p>
-          <% } %>
-        </div>
-        <div class="w3-right w3-hide-small">
-          <a href="drive" class="w3-bar-item w3-button w3-round-xxlarge">MWSDrive</a>
-          <a href="" class="w3-bar-item w3-button w3-disabled w3-round-xxlarge">FreeDB</a>
-          <a href="info.htm" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
-          <% if (!req.cookies.userCookie) { %>
-            <a href="signup" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><b>Sign Up</b></a>
-          <% } %>
-        </div>
-      </div>
-    </div>
+    <%- include('bar', {req: req}); %>
     <div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
       <div class="w3-display-middle">
         <h1 class="w3-jumbo w3-animate-top"><b>MelleWS</b></h1>
