@@ -1,3 +1,4 @@
+[![Website mellemws.my.to](https://img.shields.io/website-up-down-green-red/http/mellemws.my.to.svg)](https://mellemws.my.to/)
 # MelleWS
 MelleWS is a web platform written in NodeJS and Express.JS. It uses EJS as the view engine.
 ## Info
