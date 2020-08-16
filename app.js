@@ -142,15 +142,6 @@ app.get("/api/ping", function(req, res){
   res.write("\n  You successfully pinged the MelleWS API!\n");
   res.end("\n -- end of response -- " + new Date());
 });
-app.get('/login', function(req, res){
-  if (req.cookies.userCookie) {
-    res.send("You are already logged in as " + req.cookies.userCookie + '. Click to <a href="/forget">log out</a>.');
-  } else {
-    res.send('<form method="post">'
-      + '<input type="text" name="textB"/>'
-      + '<input type="submit" value="Submit"/></form>');
-  }
-});
 app.post('/login', async function(req, res){
   if (req.body.textB) {
     var resUsOb = await keyv.get(req.body.textB);
