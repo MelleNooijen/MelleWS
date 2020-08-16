@@ -142,6 +142,14 @@ app.get("/api/ping", function(req, res){
   res.write("\n  You successfully pinged the MelleWS API!\n");
   res.end("\n -- end of response -- " + new Date());
 });
+app.get("/api/reqdetails", function(req, res){
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
+  res.write("\n  Details found in your HTTP request can be found below.\n");
+  res.write("\n  User Agent: " + req.rawHeaders[3] + "\n")
+  console.log(req.rawHeaders[3]);
+  res.end("\n -- end of response -- " + new Date());
+});
 app.post('/login', async function(req, res){
   if (req.body.textB) {
     var resUsOb = await keyv.get(req.body.textB);
@@ -176,7 +184,17 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error', { req: req });
+  if (req.rawHeaders[3].match("curl")) {
+    res.writeHead(err.status, {'Content-Type': 'text/plain'});
+    res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
+    res.write("\n  An error occurred. Details can be found below.\n");
+    res.write("\n  HTTP Status: " + err.status + "\n  Error message: " + err.message);
+    console.log(req.rawHeaders[3]);
+    res.end("\n -- end of response -- " + new Date());
+  }
+  else {
+    res.render('error', { req: req });
+  }
 });
 function reportErr(res, req, errStr) {
   res.render("interr", { req: req, errString: errStr }); // render interr

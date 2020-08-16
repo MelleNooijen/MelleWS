@@ -111,7 +111,11 @@ function onRequest(request, req) {
   if (reqIp == "::1") {
     reqIp = "local";
   }
-  console.log(colors.yellow("[Request]") + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
+  var logIndicator = colors.yellow("[Request]")
+  if (req.req.rawHeaders[3].match("curl")) {
+    var logIndicator = colors.yellow("[API Call]")
+  }
+  console.log(logIndicator + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
   res.on('finish', function () {
     var codeString = res.statusCode.toString();
     if (codeString.startsWith("2")) {
@@ -129,7 +133,11 @@ function onRequest(request, req) {
     else {
       var statCol = colors.grey;
     }
-    console.log(colors.cyan("[Response]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
+    var logIndicator = colors.cyan("[Response]")
+    if (req.req.rawHeaders[3].match("curl")) {
+      var logIndicator = colors.cyan("[API Response]")
+    }
+    console.log(logIndicator + statCol(" " + res.statusCode + " - " + res.statusMessage));
   });
 }
 function onSecRequest(request, req) {
@@ -141,7 +149,11 @@ function onSecRequest(request, req) {
   if (reqIp == "::1") {
     reqIp = "local";
   }
-  console.log(colors.yellow("[Request]") + colors.green(" [S]") + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
+  var logIndicator = colors.yellow("[Request]")
+  if (req.req.rawHeaders[3].match("curl")) {
+    var logIndicator = colors.yellow("[API Call]")
+  }
+  console.log(logIndicator + colors.green(" [S]") + colors.grey(" IP: " + colors.white(reqIp) + ", Method: " + colors.white(reqMeth) + ", Resource: " + colors.white(reqReso)));
   res.on('finish', function () {
     var codeString = res.statusCode.toString();
     if (codeString.startsWith("2")) {
@@ -159,6 +171,10 @@ function onSecRequest(request, req) {
     else {
       var statCol = colors.grey;
     }
-    console.log(colors.cyan("[Response]") + colors.green(" [S]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
+    var logIndicator = colors.cyan("[Response]")
+    if (req.req.rawHeaders[3].match("curl")) {
+      var logIndicator = colors.cyan("[API Response]")
+    }
+    console.log(logIndicator + colors.green(" [S]") + statCol(" " + res.statusCode + " - " + res.statusMessage));
   });
 }
