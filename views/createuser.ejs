@@ -7,16 +7,23 @@
   </head>
   <body>
     <%- include('bar', {req: req}); %>
+    <br/>
+    <br/>
+    <br/>
     <div class="w3-container w3-center">
-      <h1>Create a user</h1>
-      <p>This will create a User ID which will appear when registered.</br>With your User ID, you can access your Drive and Database.</p>
-      <div class="w3-bar">
-        <form class="w3-container w3-padding" action="/createuid" method="POST">
-            <input class="w3-input" type="text" name="usnm" placeholder="Username" required>
-            <input class="w3-input" type="email" name="mailad" placeholder="E-mail" required>
-            <input class="w3-button w3-teal w3-margin-top" type="submit" name="sbmt">
-        </form>
-      </div>
+      <% if (req.cookies.userCookie) { %>
+        <p>You already have an account.</p>
+      <% } else { %>
+        <h1>Create a user</h1>
+        <p>This will create a User ID which will appear when registered.</br>With your User ID, you can access your Drive and Database.</p>
+        <div class="w3-bar">
+          <form class="w3-container w3-padding" action="/createuid" method="POST">
+              <input class="w3-input" type="text" name="usnm" placeholder="Username" required>
+              <input class="w3-input" type="email" name="mailad" placeholder="E-mail" required>
+              <input class="w3-button w3-teal w3-margin-top" type="submit" name="sbmt">
+          </form>
+        </div>
+      <% } %>
     </div>
   </body>
 </html>

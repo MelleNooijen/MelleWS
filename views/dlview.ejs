@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <% var tempFlSz = flobj.size / 1000000; %>
+    <% tempFlSz = Math.round((tempFlSz + Number.EPSILON) * 100) / 100; %>
+    <meta content="<%= flobj.usrnm %> shared <%= flobj.name %>" property="og:title">
+    <meta content="<%= flobj.usrnm %> shared <%= flobj.name %>, a <%= flobj.type.split('/')[0] %> file of <%= tempFlSz %> MB." property="og:description">
+    <meta content="MelleWS" property="og:site_name">
+    <meta content='/images/logo-white-v2.png' property='og:image'>
+    <meta name="theme-color" content="#009688">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  </head>
+  <body>
+    <%- include('bar', {req: req}); %>
+    <br/>
+    <br/>
+    <br/>
+    <div class="w3-container w3-center">
+        <h1>Download File</h1>
+        <p>Filename: <%= flobj.name %></p>
+        <p>Uploader: <%= flobj.usrnm %></p>
+        <p>Type: <%= flobj.type.split('/')[0] %> (<%= flobj.type.split('/')[1] %>)</p>
+        <p>Size: <%= tempFlSz %> MB</p>
+        <a class="w3-button w3-teal" href="/direct/<%= flobj.name %>" download="">Download</a>
+    </div>
+    </body>
+</html>

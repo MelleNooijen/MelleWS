@@ -1,6 +1,7 @@
 <html>
     <title>MelleWS (success)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
     <div class="w3-top">
       <div class="w3-bar w3-green w3-padding w3-card">
@@ -15,8 +16,8 @@
             <% } %>
           </div>
           <div class="w3-right w3-hide-small">
-            <a href="drive" class="w3-bar-item w3-button w3-round-xxlarge">MWSDrive</a>
-            <a href="" class="w3-bar-item w3-button w3-disabled w3-round-xxlarge">FreeDB</a>
+            <a href="drive" class="w3-bar-item w3-button w3-round-xxlarge">Drive</a>
+            <a href="convert" class="w3-bar-item w3-button w3-round-xxlarge">Convert</a>
             <a href="info" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
             <% if (!req.cookies.userCookie) { %>
               <a href="login" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><strong>Log in</strong></a>
@@ -34,5 +35,15 @@
       <% } else {%>
         <p style='font-family: "Lucida Console", Monaco, monospace'>No error defined by applet.</p>
       <% } %>
+      <% if (sucUrl) { %>
+        <button onclick="copyTC('<%= sucUrl %>')" class="w3-button w3-teal">Copy URL</button>
+      <% } %>
     </div>
+    <script>
+      function copyTC(x) {
+        var dummyContent = x;
+        var dummy = $('<input>').val(dummyContent).appendTo('body').select()
+        document.execCommand('copy')
+      }
+    </script>
 </html>

@@ -1,3 +1,3 @@
 @echo off
-nodemon /bin/www
+nodemon --ignore './public/json/' /bin/www 
 pause
