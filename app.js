@@ -112,7 +112,7 @@ app.post('/upl', async function(req, res){
                 fs.writeFile(jsonFileName, fileObj, function(err){
                   reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
                 });
-                var fullUrl = "https://mellemws.my.to/upload/" + filenameToUpload;
+                var fullUrl = "http://mellemws.my.to/upload/" + filenameToUpload;
                 reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".", fullUrl);
               });
             }
@@ -273,12 +273,17 @@ app.use(function(err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    if (req.rawHeaders[3].match("curl")) {
-      res.writeHead(err.status, {'Content-Type': 'text/plain'});
-      res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
-      res.write("\n  An error occurred. Details can be found below.\n");
-      res.write("\n  HTTP Status: " + err.status + "\n  Error message: " + err.message);
-      res.end("\n -- end of response -- " + new Date());
+    if (req.rawHeaders) {
+      if (req.rawHeaders[3].match("curl")) {
+        res.writeHead(err.status, {'Content-Type': 'text/plain'});
+        res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
+        res.write("\n  An error occurred. Details can be found below.\n");
+        res.write("\n  HTTP Status: " + err.status + "\n  Error message: " + err.message);
+        res.end("\n -- end of response -- " + new Date());
+      }
+      else {
+        res.render('error', { req: req });
+      }
     }
     else {
       res.render('error', { req: req });
