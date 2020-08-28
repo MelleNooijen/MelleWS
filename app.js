@@ -26,7 +26,7 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
+app.use(require('express-status-monitor')()) // /status page
 // app.use(logger('dev')); // disble for prod
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
