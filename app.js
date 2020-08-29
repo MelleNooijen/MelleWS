@@ -273,7 +273,6 @@ app.use(function(err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    console.log(req.rawHeaders);
     if (req.rawHeaders === void(0)) {
       res.end("Your browser is not compatible with MelleWS as the HTTP request is not formatted correctly.")
     }
