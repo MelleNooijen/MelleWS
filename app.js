@@ -273,7 +273,7 @@ app.use(function(err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    if (req.rawHeaders) {
+    if (!req.rawHeaders === void(0)) {
       if (req.rawHeaders[3].match("curl")) {
         res.writeHead(err.status, {'Content-Type': 'text/plain'});
         res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
