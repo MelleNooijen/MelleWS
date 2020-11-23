@@ -56,7 +56,7 @@ launcher-prod
 ```
 Or to start in Debug Mode (not recommended):
 ```batch
-launcher
+launcher-adv
 ```
 
 Done!
