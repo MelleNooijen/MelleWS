@@ -15,7 +15,7 @@ Here is a list of what the scripts do:
 
 `/views/*.ejs`: These are actually mostly HTML files, but with server-side JavaScript in them.
 
-`/launcher(-prod).bat`: These are Launcher scripts to start MelleWS.
+`/launcher(-prod/loop).bat`: These are Launcher scripts to start MelleWS. They can be ignored and don't need much updating, since they're only used to launch MelleWS for the website itself.
 ### Routers
 Routers are the scripts which render EJS (dynamic HTML) pages. They are defined in `app.js`.
 ### HTTP Request handling
