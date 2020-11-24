@@ -1,3 +1,8 @@
+/*
+    SPDX-license_Identifier: AGPL-3.0-or-later
+    Copyright © 2020 Melle Nooijen & contributors
+*/
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
