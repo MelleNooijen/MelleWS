@@ -2,15 +2,17 @@
 <html>
   <head>
     <title>MelleWS</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="./stylesheets/basic.css">
+    <link rel="stylesheet" href="./stylesheets/modal.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
-      body,h1 {font-family: "Raleway", sans-serif}
+      .homefont {font-family: "Raleway", sans-serif}
       body, html {height: 100%}
       .bgimg {
         min-height: 100%;
@@ -25,16 +27,52 @@
       $('body').css({'background-image': 'url(../images/' + images[Math.floor(Math.random() * images.length)] + ')'});
       console.log('url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
     </script>
-    <%- include('bar', {req: req}); %>
+    <%- include('bar', {req: req, barCol: "180,180,180.white"}); %>
     <div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
+      <div id="myModal" class="modal">
+        <div class="modal-content w3-display-middle">
+          <span class="close">&times;</span>
+          <span class="tongue">😜</span>
+          <br/>
+          <p style="font-family: 'Courier New', Courier, monospace; font-weight:200; font-size:large;">This Nonexclusive Service License Agreement ("Agreement") is between you (As in your soul entity, shall this Agreement not expire under any afterlife circumstance, if any), your heirs, agents, successors and assigns ("Licensee") and MelleMWS<br/>By registering at the MelleMWS services you, your heirs, agents, successors and assigns will be the exclusive transferable property of MelleMWS, aside from any local law or human right regulation. You agree to obey any orders at the request of MelleMWS, as notified via your account's e-mail with the maximum possible priority.<br/>The faillure to comply with such terms will be hardly punished by MelleMWS, that may revoke your rights or terminate your life (private property of MelleMWS) without prior notice.<br/>You agree not to legally make MelleMWS guitly under any circumstance, and prove MelleMWS not liable for any law violation MelleMWS may be held liable of.<br/>MelleMWS reserves the right to update, modify or remove these terms without prior notice.</p>
+        </div>
+      </div>
       <div class="w3-display-middle">
-        <h1 class="w3-jumbo w3-animate-top"><b>MelleWS</b></h1>
+        <h1 class="homefont w3-jumbo w3-animate-top"><b>MelleWS</b></h1>
         <hr class="w3-border-grey" style="margin:auto;width:50%">
-        <p class="w3-large w3-center"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
+        <p class="homefont w3-large w3-center"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
       </div>
-      <div class="w3-display-bottomleft w3-padding-large w3-text-black">
-        © Melle Nooijen
+      <div class="homefont w3-display-bottomleft w3-padding-large w3-text-black">
+        <a id="myBtn" class="baritem" href="#">©</a> Melle Nooijen
       </div>
+      <a href="https://www.github.com/MelleNooijen/MelleWS" class="w3-display-bottomright w3-margin"><i class="fab fa-github fa-2x" style="color:rgba(216, 216, 216, 0.5); backdrop-filter: blur(10px);"></i></a>
     </div>
+    <script>
+      // Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the button, open the modal
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+    </script>
   </body>
 </html>

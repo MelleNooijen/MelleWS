@@ -14,6 +14,8 @@ var infoRouter = require('./routes/info');
 var convRouter = require('./routes/convert');
 var loginRouter = require('./routes/login');
 var uncoRouter = require('./routes/ucon');
+const mime = require('mime-types');
+const options = {withFileTypes: true};
 
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
@@ -103,17 +105,39 @@ app.post('/upl', async function(req, res){
             else {
               var safeName = filenameToUpload;
               stringEscape(safeName);
+              if(fields.dispmetd == "dm_hide"){
+                safeName = "H." + safeName;
+              }
               var oldpath = files.filetoupload.path;
-              var newpath = path.join(__dirname, "public\\direct\\") + safeName;
+              console.log(fields.dispmetd);
+              if(fields.dispmetd == "dm_personal") {
+                var newpath = path.normalize(path.join(__dirname, "public/user/") + getResult.name + "/" + safeName);
+                var fuType = "user-upload/" + getResult.name;
+                if (!fs.existsSync(path.normalize("./public/user/" + getResult.name))){
+                  fs.mkdirSync(path.normalize("./public/user/" + getResult.name));
+                }
+              }
+              else {
+                var newpath = path.normalize(path.join(__dirname, "public/direct/") + safeName);
+                var fuType = "upload";
+              }
               fs.rename(oldpath, newpath, function (err) {
-                if (err) throw err;
+                console.log(newpath);
+                if (err){
+                  reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                  throw err;
+                }
                 var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + getResult.name + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
                 var jsonFileName = "./public/json/" + safeName + ".json";
                 fs.writeFile(jsonFileName, fileObj, function(err){
-                  reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                  if (err) {
+                    reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                    return;
+                  }
                 });
-                var fullUrl = "http://mellemws.my.to/upload/" + filenameToUpload;
-                reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".", fullUrl);
+                var fullUrl = "http://mellemws.my.to/" + fuType + "/" + filenameToUpload;
+                reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType + "/" + filenameToUpload + ".", fullUrl);
+                return;
               });
             }
           }
@@ -142,6 +166,7 @@ app.post('/createuid', function(req, res){
     var usIDstr = usID.toString();
     res.cookie('idCookie', usIDstr, { maxAge: xyears });
     keyv.set(usIDstr, userObject);
+    return;
   }
 });
 
@@ -182,7 +207,32 @@ app.get('/upload/*', async function(req, res){
     else {
       var parsedFC = JSON.parse(fileContent);
       console.log(parsedFC);
-      res.render("dlview", { req: req, flobj: parsedFC});
+      res.render("dlview", { req: req, flobj: parsedFC, private: false});
+      return parsedFC;
+    }
+  });
+});
+app.get('/user-upload/*', async function(req, res){
+  var reqres = req.url.split("/")[3];
+  var jsfn = "./public/json/" + reqres + ".json";
+  console.log("Trying to access " + jsfn);
+  var fileContent = "none.";
+  fs.readFile(jsfn, function(err, data){
+    if(err){
+      reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
+    }
+    else {
+      console.log(data);
+      fileContent = data;
+    }
+    console.log(fileContent);
+    if (fileContent == "none."){
+      res.render("interr", { req: req, errString: "The requested file does not exist." });
+    }
+    else {
+      var parsedFC = JSON.parse(fileContent);
+      console.log(parsedFC);
+      res.render("dlview", { req: req, flobj: parsedFC, private: true});
       return parsedFC;
     }
   });
@@ -190,6 +240,90 @@ app.get('/upload/*', async function(req, res){
 app.get('/forget', function(req, res){
   res.clearCookie('userCookie');
   res.redirect('back');
+});
+app.get('/pubdir/*', function(req, res, next) {
+  var dir = req.url.replace('/pubdir/','');
+  if (!dir.endsWith("/")){
+    dir = dir + "/";
+  }
+  if(dir == "/"){
+    isHomeDir = true;
+  }
+  else{
+    isHomeDir = false;
+  }
+  console.log(dir);
+  console.log(isHomeDir);
+  var folder = './public/direct/' + dir;
+  console.log(folder);
+  fs.readdir(folder, options, (err, files) => {
+    var fileArray = [];
+    if(!files){
+      res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir});
+      return;
+    }
+    files.forEach(file =>{
+        if(file.name.startsWith("H.")){
+          return;
+        }
+        var fileName = file.name;
+        var fileTypeL = "err:unclearedvariable";
+        var fileTypeS = "err:unclearedvariable";
+        var fileType = "Unknown";
+        if(file.isDirectory()){
+            fileType = "directory";
+        }
+        else {
+            fileTypeL = mime.lookup(folder + file.name);
+            if(!fileTypeL){
+              fileTypeL = "-";
+              fileTypeS = "Other";
+            }
+            else{
+              fileTypeS = mime.extension(fileTypeL);
+              if(!fileTypeL){
+                fileTypeS = "Special";
+              }
+            }
+            fileType = fileTypeS.toUpperCase() + " file (" + fileTypeL + ")";
+        }
+        var fullDate = new Date(fs.statSync(folder + file.name).birthtime.toISOString());
+        var date_y = fullDate.getFullYear();
+        var date_m = fullDate.getMonth() + 1;
+        var date_d = fullDate.getDate();
+        var time_h = fullDate.getHours();
+        var time_m = fullDate.getMinutes();
+        if(fileTypeL == "-"){
+          var icon = "default";
+        }
+        else if (fileTypeL.split("/")[0] == "image"){
+          var icon = "image";
+        }
+        else if (fileTypeL.split("/")[0] == "audio"){
+          var icon = "audio";
+        }
+        else if (fileTypeL.split("/")[0] == "video"){
+          var icon = "video";
+        }
+        else if (fileTypeL.split("/")[0] == "text"){
+          var icon = "text";
+        }
+        else if (fileType == "directory"){
+          var icon = "directory";
+        }
+        else if (fileTypeL.split("/")[1] == "pdf"){
+          var icon = "document";
+        }
+        else {
+          var icon = "default";
+        }
+        console.log(icon);
+        var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
+        var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
+        fileArray.push(fileObject);
+    });
+    res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, curfol: folder});
+  });
 });
 /* 
   API handlers
@@ -292,6 +426,7 @@ app.use(function(err, req, res, next) {
 });
 function reportErr(res, req, errStr) {
   res.render("interr", { req: req, errString: errStr }); // render interr
+  return;
 }
 function reportApiErr(res, req, errStr) {
   res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -301,6 +436,7 @@ function reportApiErr(res, req, errStr) {
 }
 function reportSuccess(res, req, sucStr, sucUrl) {
   res.render("success", { req: req, sucString: sucStr, sucUrl: sucUrl }); // render success
+  return;
 }
 function stringEscape(s) {
   return s ? s.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/\t/g,'\\t').replace(/\v/g,'\\v').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/[\x00-\x1F\x80-\x9F]/g,hex) : s;

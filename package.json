@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@keyv/sqlite": "^2.0.2",
     "colors": "^1.4.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
@@ -15,6 +16,7 @@
     "formidable": "^1.2.2",
     "http-errors": "~1.6.3",
     "keyv": "^4.0.1",
+    "mime-types": "^2.1.27",
     "morgan": "~1.9.1",
     "pm2": "^4.4.1"
   }

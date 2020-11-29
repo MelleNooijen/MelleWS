@@ -2,29 +2,7 @@
     <title>MelleWS (error)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
-    <div class="w3-top">
-      <div class="w3-bar w3-red w3-padding w3-card">
-        <a href="/"><img 
-          src="/images/logo-white-v2.svg"
-          alt="MelleWS"
-          height="36"
-          class=""/></a>
-          <div class="w3-display-topmiddle w3-hide-small">
-            <% if (req.cookies.userCookie) { %>
-              <p>Hi, <%= req.cookies.userCookie %></p>
-            <% } %>
-          </div>
-          <div class="w3-right w3-hide-small">
-            <a href="drive" class="w3-bar-item w3-button w3-round-xxlarge">Drive</a>
-            <a href="convert" class="w3-bar-item w3-button w3-round-xxlarge">Convert</a>
-            <a href="info" class="w3-bar-item w3-button w3-round-xxlarge">Info</a>
-            <% if (!req.cookies.userCookie) { %>
-              <a href="login" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><strong>Log in</strong></a>
-              <a href="signup" class="w3-bar-item w3-button w3-round-xxlarge w3-hover-teal"><b>Sign Up</b></a>
-            <% } %>
-          </div>
-      </div>
-    </div>
+    <%- include('bar', {req: req, barCol: "244,67,54.black"}); %>
     <div class="w3-container w3-display-middle">
       <h1>Error!</h1>
       <h3>An error occurred in the applet you were running.</h3>

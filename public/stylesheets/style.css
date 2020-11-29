@@ -1,8 +1,75 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+a.dir {
+  color: #009688;
+  text-decoration: none;
+}
+a.updir {
+  color: #0E6655;
+  text-decoration: none;
+}
+a.item {
+  color: #000000;
+  text-decoration: none;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
 }
 
-a {
-  color: #00B7FF;
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
 }
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  fill: #0E6655;
+  color: #0E6655;
+  stroke-width: 2;
+}
+.icon,
+.text {
+  vertical-align: middle;
+  display: inline-block;
+}
+.icon {
+  top: 0.125em;
+}
+.text{
+  margin-bottom:-0.125em;
+}
+.svg-icon circle {
+  stroke: #4691f6;
+  stroke-width: 1;
+}
+.svg-icon.svg-baseline svg {
+  top: .125em;
+  position: relative;
+}
+
+.dropdown-content {
+  display: none;
+  position: fixed;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.05);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  position: sticky;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.drop:hover + .dropdown-content {display: block;}

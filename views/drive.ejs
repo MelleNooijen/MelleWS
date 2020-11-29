@@ -11,13 +11,19 @@
     <br/>
     <br/>
     <p class="w3-margin-left">Welcome to MWSDrive, a free storage applet with a maximum upload size of 200 MB.</p>
-    <div class="w3-card w3-margin w3-margin-top" style="width: 25%">
+    <div class="w3-card w3-margin w3-margin-top" style="display: inline-block;">
         <div class="w3-container">
           <h2 class="w3-text-teal">Upload</h2>
         </div>
-        <form class="w3-container w3-padding dropzone" action="upl" method="post" enctype="multipart/form-data" width=30>
+        <form class="w3-container w3-padding dropzone" action="upl" method="post" enctype="multipart/form-data" class="w3-padding">
             <input class="w3-input" type="text" name="usrID" placeholder="User ID" value="<%= req.cookies.idCookie %>">
             <input class="w3-input" type="file" name="filetoupload" id="dzf" required>
+            <label for="dispmetd">Save file to...</label>
+            <select class="w3-input" name="dispmetd" id="dispmetd">
+              <option value="dm_pubdir">Public Directory</option>
+              <option value="dm_hide">Public Directory (hidden)</option>
+              <option value="dm_personal">User Directory</option>
+            </select>
             <input class="w3-button" type="submit">
         </form>
     </div>

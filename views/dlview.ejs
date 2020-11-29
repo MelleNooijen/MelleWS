@@ -5,7 +5,7 @@
     <% var tempFlSz = flobj.size / 1000000; %>
     <% tempFlSz = Math.round((tempFlSz + Number.EPSILON) * 100) / 100; %>
     <meta content="<%= flobj.usrnm %> shared <%= flobj.name %>" property="og:title">
-    <meta content="<%= flobj.usrnm %> shared <%= flobj.name %>, a <%= flobj.type.split('/')[0] %> file of <%= tempFlSz %> MB." property="og:description">
+    <meta content="<%= flobj.usrnm %> shared <%= flobj.name %>, a(n) <%= flobj.type.split('/')[0] %> file of <%= tempFlSz %> MB." property="og:description">
     <meta content="MelleWS" property="og:site_name">
     <meta content='/images/logo-white-v2.png' property='og:image'>
     <meta name="theme-color" content="#009688">
@@ -22,7 +22,17 @@
         <p>Uploader: <%= flobj.usrnm %></p>
         <p>Type: <%= flobj.type.split('/')[0] %> (<%= flobj.type.split('/')[1] %>)</p>
         <p>Size: <%= tempFlSz %> MB</p>
-        <a class="w3-button w3-teal" href="/direct/<%= flobj.name %>" download="">Download</a>
+        <% if(private){ %>
+          <% if(!req.cookies.userCookie){%>
+            <a class="w3-button w3-teal w3-disabled" href="#">Log in to see your private files.</a>
+          <% } else if(req.cookies.userCookie != flobj.usrnm) { %>
+            <a class="w3-button w3-teal w3-disabled" href="#">Unauthorised.</a>
+          <% } else { %>
+            <a class="w3-button w3-teal" href="/user/<%= flobj.usrnm %>/<%= flobj.name %>" download="">Download (private)</a>
+          <% } %>
+        <% } else { %>
+          <a class="w3-button w3-teal" href="/direct/<%= flobj.name %>" download="">Download</a>
+        <% } %>
     </div>
     </body>
 </html>
