@@ -1,12 +1,12 @@
 # MelleWS stuff
-public/user/
-public/upload/
-public/json/
-public/direct/
-public/test/
+public/user/*
+public/upload/*
+public/json/*
+public/direct/*
+public/test/*
 login.sqlite
-sslcert/
-GPUCache/
+sslcert/*
+GPUCache/*
 # Logs
 logs
 *.log
