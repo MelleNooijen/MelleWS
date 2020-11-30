@@ -93,7 +93,7 @@ app.post('/upl', async function(req, res){
           reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
         }
         else {
-          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
+          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\") || filenameToUpload.includes("..")) {
             reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
           }
           else {
