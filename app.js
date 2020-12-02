@@ -165,7 +165,7 @@ app.post('/createuid', async function(req, res){
   var usID = Math.floor(Math.random() * 1000000);
   var usernameStr = req.body.usnm;
   var invalidChars = /[!@#^\&\*\(\)_=\{\}\[\]\\|:;“‘<>,\?]/;
-  if (/\s/.test(usernameStr) || usernameStr.match(invalidChars)) {
+  if (/\s/.test(usernameStr) || usernameStr.match(invalidChars) || usernameStr.includes("..") || usernameStr.includes("/")) {
     reportErr(res, req, "Encountered an error! (02: String contains invalid characters).\nYour username contains a prohibited character.")
   }
   const unExist = await keyvUsNms.get(usernameStr);
