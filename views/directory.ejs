@@ -5,6 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <% if(isUser){ %>
+      <style>
+        * {box-sizing: border-box;}
+        .form-popup {
+          display: none;
+          position: fixed;
+          bottom: 0px;
+          left: 8%;
+          border: 3px solid #f1f1f1;
+          z-index: 9;
+        }
+        .form-container {
+          max-width: 300px;
+          padding: 10px;
+          background-color: white;
+        }
+        .form-container input[type=text], .form-container input[type=password] {
+          width: 100%;
+          padding: 15px;
+          margin: 5px 0 22px 0;
+          border: none;
+          background: #f1f1f1;
+        }
+        .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+          background-color: #ddd;
+          outline: none;
+        }
+        .form-container .btn {
+          background-color: #4CAF50;
+          color: white;
+          padding: 16px 20px;
+          border: none;
+          cursor: pointer;
+          width: 33%;
+          margin-bottom:10px;
+          opacity: 0.8;
+        }
+        .form-container .cancel {
+          background-color: red;
+        }
+        </style>
+      <% } %>
   </head>
   <body>
     <%- include('bar', {req: req}); %>
@@ -15,14 +57,26 @@
       <h1><%= title %></h1>
       <table style="width: 80%; margin: auto;">
         <tr>
-          <% if(typeof curfol != "undefined"){ %>
-            <% if(curfol == "./public/direct//"){ %>
-              <td>/</td>
+          <% if(isUser){ %>
+            <% if(typeof curfol != "undefined"){ %>
+              <% if(curfol == "./public/user/" + req.cookies.userCookie + "//"){ %>
+                <td>/</td>
+              <% } else { %>
+                <td>/<%= curfol.replace("./public/user/" + req.cookies.userCookie + "/","") %></td>
+              <% } %>
             <% } else { %>
-              <td>/<%= curfol.replace("./public/direct/","") %></td>
+              <td>Unknown directory</td>
             <% } %>
           <% } else { %>
-            <td>Unknown directory</td>
+            <% if(typeof curfol != "undefined"){ %>
+              <% if(curfol == "./public/direct//"){ %>
+                <td>/</td>
+              <% } else { %>
+                <td>/<%= curfol.replace("./public/direct/","") %></td>
+              <% } %>
+            <% } else { %>
+              <td>Unknown directory</td>
+            <% } %>
           <% } %>
         </tr>
         <tr>
@@ -36,6 +90,24 @@
           <td></td>
           <td></td>
         </tr>
+        <% } %>
+        <% if(!isUser && !(typeof(req.cookies.userCookie) == "undefined")){ %>
+          <tr>
+            <td><span><svg class="icon svg-icon svg-baseline" viewBox="0 0 20 20">
+              <path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z"></path>
+            </svg>  <a href="/mydir/" class="dir text updir"><strong>Your Files</strong></a></td>
+            <td><%= req.cookies.userCookie %></td>
+            <td></td>
+          </tr>
+        <% } %>
+        <% if(isUser){ %>
+          <tr>
+            <td><span><svg class="icon svg-icon svg-baseline" viewBox="0 0 20 20">
+              <path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z"></path>
+            </svg>  <a href="/pubdir/" class="dir text updir"><strong>Public Directory</strong></a></td>
+            <td></td>
+            <td></td>
+          </tr>
         <% } %>
         <% dirArray.forEach(function(file){%>
           <tr>
@@ -69,6 +141,27 @@
           </tr>
         <% }); %>
       </table>
-      </div>
+      <% if(isUser){ %>
+        <button class="w3-display-bottomleft w3-button w3-red w3-margin" onclick="openForm()">Delete</button>
+        <div class="form-popup" id="myForm">
+          <form action="/delete/" class="form-container">
+            <h1>Delete</h1>
+            <label for="flnm"><b>Filename</b></label>
+            <input type="text" placeholder="Enter Filename" name="flnm" required>
+            <button type="submit" class="btn">Delete</button>
+            <button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
+          </form>
+        </div>
+        <script>
+        function openForm() {
+          document.getElementById("myForm").style.display = "block";
+        }
+        
+        function closeForm() {
+          document.getElementById("myForm").style.display = "none";
+        }
+        </script>
+      <% } %>
+    </div>
   </body>
 </html>

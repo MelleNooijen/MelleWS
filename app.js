@@ -23,6 +23,9 @@ const Keyv = require('keyv');
 const { info } = require('console');
 const { report } = require('./routes/index');
 const keyv = new Keyv('sqlite://login.sqlite');
+const keyvUsNms = new Keyv('sqlite://login.sqlite',{
+  table: "usernames"
+});
 var app = express();
 
 // view engine setup
@@ -93,8 +96,13 @@ app.post('/upl', async function(req, res){
           reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
         }
         else {
+          if (filenameToUpload.startsWith("index") && fields.dispmetd != "dm_personal"){
+            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
+            return;
+          }
           if (filenameToUpload.includes("/") || filenameToUpload.includes("\\") || filenameToUpload.includes("..")) {
             reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
+            return;
           }
           else {
             var flSz = files.filetoupload.size / 1000000;
@@ -120,6 +128,10 @@ app.post('/upl', async function(req, res){
               else {
                 var newpath = path.normalize(path.join(__dirname, "public/direct/") + safeName);
                 var fuType = "upload";
+              }
+              if (fs.existsSync(path.normalize(path.join(__dirname, "public/direct/") + safeName)) && fields.dispmetd != "dm_personal"){
+                reportErr(res, req, "The file you are trying to upload already exists. Please rename the file.");
+                return;
               }
               fs.rename(oldpath, newpath, function (err) {
                 console.log(newpath);
@@ -149,23 +161,26 @@ app.post('/upl', async function(req, res){
     }
   });
 });
-app.post('/createuid', function(req, res){
-  console.log(req.body);
+app.post('/createuid', async function(req, res){
   var usID = Math.floor(Math.random() * 1000000);
   var usernameStr = req.body.usnm;
   var invalidChars = /[!@#^\&\*\(\)_=\{\}\[\]\\|:;“‘<>,\?]/;
   if (/\s/.test(usernameStr) || usernameStr.match(invalidChars)) {
     reportErr(res, req, "Encountered an error! (02: String contains invalid characters).\nYour username contains a prohibited character.")
   }
+  const unExist = await keyvUsNms.get(usernameStr);
+  if(unExist){
+    reportErr(res, req, "Encountered an error! (03: Username already exists.)")
+  }
   else {
-    console.log("Created object for User " + usID);
     res.cookie('userCookie', usernameStr, { maxAge: xyears });
-    reportSuccess(res, req, usernameStr + ", your user ID is " + usID + ".\nYou can now log in.")
-    var userObject = {name:req.body.usnm, email:req.body.mailad, pro:false};
-    console.log(userObject);
     var usIDstr = usID.toString();
     res.cookie('idCookie', usIDstr, { maxAge: xyears });
+    reportSuccess(res, req, usernameStr + ", your user ID is " + usID + ".\nYou can now log in.")
+    var userObject = {name:req.body.usnm, email:req.body.mailad, pro:false};
     keyv.set(usIDstr, userObject);
+    console.log(userObject);
+    keyvUsNms.set(usernameStr, true);
     return;
   }
 });
@@ -259,7 +274,7 @@ app.get('/pubdir/*', function(req, res, next) {
   fs.readdir(folder, options, (err, files) => {
     var fileArray = [];
     if(!files){
-      res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir});
+      res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, isUser: false});
       return;
     }
     files.forEach(file =>{
@@ -291,8 +306,8 @@ app.get('/pubdir/*', function(req, res, next) {
         var date_y = fullDate.getFullYear();
         var date_m = fullDate.getMonth() + 1;
         var date_d = fullDate.getDate();
-        var time_h = fullDate.getHours();
-        var time_m = fullDate.getMinutes();
+        var time_h = ('0'+fullDate.getHours()).slice(-2);
+        var time_m = ('0'+fullDate.getMinutes()).slice(-2);
         if(fileTypeL == "-"){
           var icon = "default";
         }
@@ -322,8 +337,123 @@ app.get('/pubdir/*', function(req, res, next) {
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
     });
-    res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, curfol: folder});
+    res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: false});
   });
+});
+app.get('/mydir/*', function(req, res, next) {
+  if(typeof(req.cookies.userCookie) == "undefined"){
+    reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
+    return;
+  }
+  var dir = req.url.replace('/mydir/','');
+  if (!dir.endsWith("/")){
+    dir = dir + "/";
+  }
+  if(dir == "/"){
+    isHomeDir = true;
+  }
+  else{
+    isHomeDir = false;
+  }
+  console.log(dir);
+  console.log(isHomeDir);
+  var folder = './public/user/' + req.cookies.userCookie + '/' + dir;
+  console.log(folder);
+  fs.readdir(folder, options, (err, files) => {
+    var fileArray = [];
+    if(!files){
+      res.render('directory', { req: req, title: req.cookies.userCookie + "'s files", dirArray: fileArray, ihd: isHomeDir, isUser: true});
+      return;
+    }
+    files.forEach(file =>{
+        if(file.name.startsWith("H.")){
+          return;
+        }
+        var fileName = file.name;
+        var fileTypeL = "err:unclearedvariable";
+        var fileTypeS = "err:unclearedvariable";
+        var fileType = "Unknown";
+        if(file.isDirectory()){
+            fileType = "directory";
+        }
+        else {
+            fileTypeL = mime.lookup(folder + file.name);
+            if(!fileTypeL){
+              fileTypeL = "-";
+              fileTypeS = "Other";
+            }
+            else{
+              fileTypeS = mime.extension(fileTypeL);
+              if(!fileTypeL){
+                fileTypeS = "Special";
+              }
+            }
+            fileType = fileTypeS.toUpperCase() + " file (" + fileTypeL + ")";
+        }
+        var fullDate = new Date(fs.statSync(folder + file.name).birthtime.toISOString());
+        var date_y = fullDate.getFullYear();
+        var date_m = fullDate.getMonth() + 1;
+        var date_d = fullDate.getDate();
+        var time_h = ('0'+fullDate.getHours()).slice(-2);
+        var time_m = ('0'+fullDate.getMinutes()).slice(-2);
+        if(fileTypeL == "-"){
+          var icon = "default";
+        }
+        else if (fileTypeL.split("/")[0] == "image"){
+          var icon = "image";
+        }
+        else if (fileTypeL.split("/")[0] == "audio"){
+          var icon = "audio";
+        }
+        else if (fileTypeL.split("/")[0] == "video"){
+          var icon = "video";
+        }
+        else if (fileTypeL.split("/")[0] == "text"){
+          var icon = "text";
+        }
+        else if (fileType == "directory"){
+          var icon = "directory";
+        }
+        else if (fileTypeL.split("/")[1] == "pdf"){
+          var icon = "document";
+        }
+        else {
+          var icon = "default";
+        }
+        console.log(icon);
+        var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
+        var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
+        fileArray.push(fileObject);
+    });
+    res.render('directory', { req: req, title: req.cookies.userCookie + "'s files", dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: true});
+  });
+});
+app.get("/delete/*", function(req, res, next){
+  var fileToD = req.url.replace('/delete/','')
+  if (fileToD.startsWith("?flnm=")){
+    fileToD = fileToD.replace("?flnm=","");
+  }
+  if (fileToD == ""){
+    reportErr(res, req, "Please enter the name of the file that you want to delete.");
+    return;
+  }
+  if (typeof(req.cookies.userCookie) == "undefined"){
+    reportErr(res, req, "Please log in to delete files in your folder.");
+    return;
+  }
+  console.log(fileToD);
+  if (fs.existsSync(path.normalize("./public/user/" + req.cookies.userCookie + "/" + fileToD))){
+    if (fileToD.includes("..")){
+      reportErr(res, req, "You cannot delete files that are outside your User Directory.");
+    }
+    else {
+      fs.unlinkSync(path.normalize("./public/user/" + req.cookies.userCookie + "/" + fileToD));
+      reportSuccess(res, req, "Successfully deleted file " + fileToD + " from your User Directory.");
+    }
+  }
+  else {
+    reportErr(res, req, "File does not exist.");
+  }
 });
 /* 
   API handlers
@@ -407,8 +537,9 @@ app.use(function(err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500);
-    if (req.rawHeaders === void(0)) {
+    if (typeof(req.rawHeaders) == "undefined") {
       res.end("Your browser is not compatible with MelleWS as the HTTP request is not formatted correctly.")
+      return;
     }
     else {
       if (req.rawHeaders[3].match("curl")) {
