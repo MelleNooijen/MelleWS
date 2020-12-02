@@ -340,11 +340,21 @@ app.get('/pubdir/*', function(req, res, next) {
     res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: false});
   });
 });
-app.get('/mydir/*', function(req, res, next) {
-  if(typeof(req.cookies.userCookie) == "undefined"){
+app.get('/mydir/*', async function(req, res, next) {
+  if(typeof(req.cookies.idCookie) == "undefined"){
     reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
+  const privateUID = await keyv.get(req.cookies.idCookie);
+  console.log(privateUID);
+  console.log(privateUID.name + " while " + req.cookies.userCookie);
+  console.log(privateUID.name != req.cookies.userCookie);
+  if(typeof(privateUID) == "undefined" || privateUID.name != req.cookies.userCookie){
+    reportErr(res, req, "You have been incorrectly logged in.");
+    return;
+  }
+  var usrName = privateUID.name;
+  console.log(usrName);
   var dir = req.url.replace('/mydir/','');
   if (!dir.endsWith("/")){
     dir = dir + "/";
@@ -357,12 +367,12 @@ app.get('/mydir/*', function(req, res, next) {
   }
   console.log(dir);
   console.log(isHomeDir);
-  var folder = './public/user/' + req.cookies.userCookie + '/' + dir;
+  var folder = './public/user/' + usrName + '/' + dir;
   console.log(folder);
   fs.readdir(folder, options, (err, files) => {
     var fileArray = [];
     if(!files){
-      res.render('directory', { req: req, title: req.cookies.userCookie + "'s files", dirArray: fileArray, ihd: isHomeDir, isUser: true});
+      res.render('directory', { req: req, title: usrName + "'s files", dirArray: fileArray, ihd: isHomeDir, isUser: true, user: usrName});
       return;
     }
     files.forEach(file =>{
@@ -425,10 +435,10 @@ app.get('/mydir/*', function(req, res, next) {
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
     });
-    res.render('directory', { req: req, title: req.cookies.userCookie + "'s files", dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: true});
+    res.render('directory', { req: req, title: usrName + "'s files", dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: true, user: usrName});
   });
 });
-app.get("/delete/*", function(req, res, next){
+app.get("/delete/*", async function(req, res, next){
   var fileToD = req.url.replace('/delete/','')
   if (fileToD.startsWith("?flnm=")){
     fileToD = fileToD.replace("?flnm=","");
@@ -437,17 +447,23 @@ app.get("/delete/*", function(req, res, next){
     reportErr(res, req, "Please enter the name of the file that you want to delete.");
     return;
   }
-  if (typeof(req.cookies.userCookie) == "undefined"){
-    reportErr(res, req, "Please log in to delete files in your folder.");
+  if(typeof(req.cookies.idCookie) == "undefined"){
+    reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
+  const privateUID = await keyv.get(req.cookies.idCookie);
+  if(typeof(privateUID) == "undefined" || privateUID.name != req.cookies.userCookie){
+    reportErr(res, req, "You have been incorrectly logged in.");
+    return;
+  }
+  var usrName = privateUID.name;
   console.log(fileToD);
-  if (fs.existsSync(path.normalize("./public/user/" + req.cookies.userCookie + "/" + fileToD))){
+  if (fs.existsSync(path.normalize("./public/user/" + usrName + "/" + fileToD))){
     if (fileToD.includes("..")){
       reportErr(res, req, "You cannot delete files that are outside your User Directory.");
     }
     else {
-      fs.unlinkSync(path.normalize("./public/user/" + req.cookies.userCookie + "/" + fileToD));
+      fs.unlinkSync(path.normalize("./public/user/" + usrName + "/" + fileToD));
       reportSuccess(res, req, "Successfully deleted file " + fileToD + " from your User Directory.");
     }
   }
