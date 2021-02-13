@@ -137,7 +137,7 @@ function onRequest(request, req) {
     if (typeof(req.req.rawHeaders[3]) == "undefined"){
       var logIndicator = colors.cyan("[VB Response]")
     }
-    if (req.req.rawHeaders[3].match("curl")) {
+    else if (req.req.rawHeaders[3].match("curl")) {
       var logIndicator = colors.cyan("[API Response]")
     }
     console.log(logIndicator + statCol(" " + res.statusCode + " - " + res.statusMessage));
