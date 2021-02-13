@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  </head>
+  <body>
+    <%- include('bar', {req: req}); %>
+    <br/>
+    <br/>
+    <br/>
+    <div class="w3-container w3-center">
+      <h1><%= user.username %></h1>
+      <p>Hello <%= user.username %>, your user details can be found below.</p>
+      <table class="w3-table w3-bordered w3-display-middle" style="width:15%">
+        <tbody>
+          <tr>
+            <td class="tg-1wig"><strong>Data</strong></td>
+            <td class="tg-1wig"><strong>Value</strong></td>
+          </tr>
+          <tr>
+            <td class="tg-0pky">Username</td>
+            <td class="tg-0pky"><%= user.username %></td>
+          </tr>
+          <tr>
+            <td class="tg-0pky">E-mail address</td>
+            <td class="tg-0pky"><%= user.email %></td>
+          </tr>
+          <tr>
+            <td class="tg-0pky">Colour Preference</td>
+            <td class="tg-0pky w3-center" style="color:rgb(<%= user.rgb %>)">██</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

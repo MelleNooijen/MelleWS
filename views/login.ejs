@@ -13,13 +13,17 @@
     <div class="w3-container w3-center">
         <h1>Login</h1>
         <div class="w3-bar">
-            <% if (req.cookies.userCookie) { %>
-                <p>You are logged in as <%= req.cookies.userCookie %>. Click to <a href="/forget">log out</a>.</p>
+            <% if (false) { %>
+                <p>You are logged in as <%= // %>. Click to <a href="/forget">log out</a>.</p>
             <% } else { %>
-                <form class="w3-container" method="post" action="/login">
-                    <input class="w3-input" type="text" name="textB" placeholder="User ID"/>
-                    <input class="w3-button w3-teal w3-margin-top" type="submit" value="Log in"/></form>
-                </form>
+              <% if(message){ %>
+                <p style="color:red"><%= message %></p>
+              <% } %>
+              <form class="w3-container" method="post" action="/login">
+                <input class="w3-input" type="text" name="username" id="username" placeholder="Username"/>
+                <input class="w3-input" type="password" name="password" id="password" placeholder="Password"/>
+                <input class="w3-button w3-teal w3-margin-top" type="submit" value="Log in"/>
+              </form>
             <% } %>
         </div>
       </div>

@@ -23,9 +23,9 @@
         <p>Type: <%= flobj.type.split('/')[0] %> (<%= flobj.type.split('/')[1] %>)</p>
         <p>Size: <%= tempFlSz %> MB</p>
         <% if(private){ %>
-          <% if(!req.cookies.userCookie){%>
+          <% if(!req.isAuthenticated()){%>
             <a class="w3-button w3-teal w3-disabled" href="#">Log in to see your private files.</a>
-          <% } else if(req.cookies.userCookie != flobj.usrnm) { %>
+          <% } else if(req.session.user.username != flobj.usrnm) { %>
             <a class="w3-button w3-teal w3-disabled" href="#">Unauthorised.</a>
           <% } else { %>
             <a class="w3-button w3-teal" href="/user/<%= flobj.usrnm %>/<%= flobj.name %>" download="">Download (private)</a>

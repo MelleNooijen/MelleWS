@@ -16,7 +16,6 @@
           <h2 class="w3-text-teal">Upload</h2>
         </div>
         <form class="w3-container w3-padding dropzone" action="upl" method="post" enctype="multipart/form-data" class="w3-padding">
-          <input class="w3-input" type="text" name="usrID" placeholder="User ID" value="<%= req.cookies.idCookie %>">
           <input class="w3-input" type="file" name="filetoupload" id="dzf" required>
           <label for="dispmetd">Save file to...</label>
           <select class="w3-input" name="dispmetd" id="dispmetd">

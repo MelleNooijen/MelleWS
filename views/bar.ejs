@@ -1,19 +1,19 @@
 <link rel="stylesheet" href="/stylesheets/bar.css"/>
 <% if(typeof(barCol) === "undefined"){ var barCol = "180,180,180.black" } %>
-<ul class="w3-display-topmiddle menu-bar" style="background-color: rgba(<%= barCol.split(".")[0]%>,.4); color: <%= barCol.split(".")[1] %>;">
+<ul class="w3-display-topmiddle menu-bar" id="mainBarDiv" style="background-color: rgba(<%= barCol.split(".")[0]%>,.4); color: <%= barCol.split(".")[1] %>;">
   <a href="/"><li class="li-icon"><img 
     src="/images/logo-<%= barCol.split(".")[1] %>-v2.svg"
     alt="MelleWS"
     height="36"
     class=""/></li></a>
-  <% if (req.cookies.userCookie) { %>
-    <li>Hi, <%= req.cookies.userCookie %></li>
+  <% if (req.isAuthenticated()) { %>
+    <a href="/profile" class="baritem"><li class="li-item">Hi, <%= req.session.user.username %></li></a>
   <% } %>
   <div class="vl"></div>
   <a href="/drive" class="baritem"><li class="li-item">Drive</li></a>
   <a href="/convert" class="baritem"><li class="li-item">Convert</li></a>
   <a href="/pubdir/" class="baritem"><li class="li-item">Files</li></a>
-  <% if (!req.cookies.userCookie) { %>
+  <% if (!req.isAuthenticated()) { %>
     <div class="vl"></div>
     <a href="/login" class="baritem"><li class="li-item li-special">Log in</li></a>
     <a href="/signup" class="baritem"><li class="li-item li-special">Sign up</li></a>
@@ -22,3 +22,13 @@
     <a href="/forget" class="baritem"><li class="li-item li-special-red">Log out</li></a>
   <% } %>
 </ul>
+<script>
+  function isTouchDevice() {
+  return (('ontouchstart' in window) ||
+     (navigator.maxTouchPoints > 0) ||
+     (navigator.msMaxTouchPoints > 0));
+  }
+  if(!isTouchDevice()){
+    document.getElementById("mainBarDiv").classList.add('dmb');
+  }
+</script>

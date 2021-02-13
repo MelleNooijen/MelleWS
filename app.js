@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mysql = require('mysql');
 var formidable = require('formidable');
 var fs = require("fs");
 var url = require('url');
@@ -16,17 +17,28 @@ var loginRouter = require('./routes/login');
 var uncoRouter = require('./routes/ucon');
 const mime = require('mime-types');
 const options = {withFileTypes: true};
+var session_age = 1000*60*60*24*365*10 // msecs*secs*mins*hrs*days*years
+const { check,validationResult } = require('express-validator');
 
+var secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
-const Keyv = require('keyv');
+const Keyv = require('keyv'); // legacy
 const { info } = require('console');
 const { report } = require('./routes/index');
-const keyv = new Keyv('sqlite://login.sqlite');
-const keyvUsNms = new Keyv('sqlite://login.sqlite',{
+const keyv = new Keyv('sqlite://login.sqlite'); // legacy
+const keyvUsNms = new Keyv('sqlite://login.sqlite',{ // legacy
   table: "usernames"
 });
+var flash = require('connect-flash');
+var crypto = require('crypto');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var sess = require('express-session');
+var Store = require('express-session').Store;
 var app = express();
+var BetterMemoryStore = require('session-memory-store')(sess);
+var store = new BetterMemoryStore({ expires: session_age, debug: true });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,15 +49,73 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+// init login system
+var connection = mysql.createConnection({
+  host: secrets.sql_host,
+  user: secrets.sql_user,
+  password: secrets.sql_pwd,
+  database: "mellews"
+});
+app.use(sess({
+  name: 'JSESSION',
+  secret: secrets.session_secret,
+  store:  store,
+  resave: true,
+  maxAge: new Date(Date.now() + session_age),
+  cookie: { path: '/', httpOnly: true, maxAge: session_age}, 
+  saveUninitialized: true
+}));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
+connection.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected to database!");
+});
+passport.use('local', new LocalStrategy({
+  usernameField: 'username',
+  passwordField: 'password',
+  passReqToCallback: true }, function (req, username, password, done){
+    if(!username || !password ) { return done(null, false, req.flash('message','All fields are required.')); }
+    var salt = secrets.pass_salt;
+    connection.query("select * from users where username = ?", [username], function(err, rows){
+    console.log(err);
+    console.log("ROWS BELOW");
+    console.log(rows[0]);
+    if (err) return done(null, false, req.flash('message', "An internal error occurred."));
+    if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
+    salt = salt+''+password;
+    var encPassword = crypto.createHash('sha1').update(salt).digest('hex');
+    var dbPassword  = rows[0].password;
+    if(!(dbPassword == encPassword)){
+      return done(null, false, req.flash('message','Invalid username or password.'));
+    }
+    req.session.user = rows[0];
+    return done(null, rows[0]);
+    });
+  }
+));
+passport.serializeUser(function(user, done){
+  done(null, user.userid);
+});
+passport.deserializeUser(function(id, done){
+  connection.query("select * from users where userid = " + id, function (err, rows){
+    console.log(rows);  
+    done(err, rows[0]);
+  });
+});
 app.use('/', indexRouter);
 app.get('/drive', driveRouter);
 app.get('/info', infoRouter);
 app.get('/signup', uidRouter);
 app.get('/convert', convRouter);
-app.get('/login', loginRouter);
+app.get('/login', function(req, res){
+  res.render('login', { req: req, message: req.flash('message') });
+});
 app.get('/unco', uncoRouter);
 
 var apiHeader = "     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n";
+
 // test HTTP codes
 app.get('/httptest', function(req, res){
   res.send('<form method="post">'
@@ -84,24 +154,19 @@ app.post('/upl', async function(req, res){
   // path.join(__dirname, "public\\upload\\")
   form.uploadDir = "./public/direct/";
   form.parse(req, async function (err, fields, files) {
-    if (fields.usrID) {
-      const getResult = await keyv.get(fields.usrID);
-      if (getResult === void(0)) {
-        reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
+      if (!req.isAuthenticated()) {
+        reportErr(res, req, "You are not logged in. Please log in.");
       }
       else {
         var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
-        var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
-        if (filenameToUpload.match(invalidCharsT)) {
+        //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+        filenameToUpload = encodeURIComponent(filenameToUpload);
+        if (false) {
           reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
         }
         else {
           if (filenameToUpload.startsWith("index") && fields.dispmetd != "dm_personal"){
-            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
-            return;
-          }
-          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\") || filenameToUpload.includes("..")) {
-            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
+            reportErr(res, req, "Encountered an error! (04: The public directory isn't a web hosting service, use UserPages!");
             return;
           }
           else {
@@ -119,10 +184,10 @@ app.post('/upl', async function(req, res){
               var oldpath = files.filetoupload.path;
               console.log(fields.dispmetd);
               if(fields.dispmetd == "dm_personal") {
-                var newpath = path.normalize(path.join(__dirname, "public/user/") + getResult.name + "/" + safeName);
-                var fuType = "user-upload/" + getResult.name;
-                if (!fs.existsSync(path.normalize("./public/user/" + getResult.name))){
-                  fs.mkdirSync(path.normalize("./public/user/" + getResult.name));
+                var newpath = path.normalize(path.join(__dirname, "public/user/") + req.session.user.username + "/" + safeName);
+                var fuType = "user-upload/" + req.session.user.username;
+                if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
+                  fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
                 }
               }
               else {
@@ -139,7 +204,7 @@ app.post('/upl', async function(req, res){
                   reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
                   throw err;
                 }
-                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + getResult.name + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
+                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
                 var jsonFileName = "./public/json/" + safeName + ".json";
                 fs.writeFile(jsonFileName, fileObj, function(err){
                   if (err) {
@@ -155,13 +220,9 @@ app.post('/upl', async function(req, res){
           }
         }
       }
-    }
-    else {
-      reportErr(res, req, "No User ID (code 01).");
-    }
   });
 });
-app.post('/createuid', async function(req, res){
+app.post('/createuid', async function(req, res){ // legacy
   var usID = Math.floor(Math.random() * 1000000);
   var usernameStr = req.body.usnm;
   var invalidChars = /[!@#^\&\*\(\)_=\{\}\[\]\\|:;“‘<>,\?]/;
@@ -184,23 +245,68 @@ app.post('/createuid', async function(req, res){
     return;
   }
 });
-
-app.post('/login', async function(req, res){
-  if (req.body.textB) {
-    var resUsOb = await keyv.get(req.body.textB);
-    if (resUsOb) {
-      console.log(resUsOb.name);
-      res.cookie('idCookie', req.body.textB, { maxAge: xyears });
-      res.cookie('userCookie', resUsOb.name, { maxAge: xyears });
-      res.redirect('back');
-    }
-    else {
-      reportErr(res, req, "User ID not found.");
-    }
+app.post('/register', [
+  check('username')
+      .exists()
+      .trim()
+      .matches(/^(?=.*[a-z])[a-z0-9_A-Z]{3,15}$/)
+      .custom(async username => {
+          const value = await isMentionNameInUse(username);
+          if (value) {
+              throw new Error('Username is taken.');
+          }
+      })
+      .withMessage('Invalid username.'),
+  check('email')
+      .exists()
+      .isLength({ min: 6, max: 100 })
+      .isEmail()
+      .normalizeEmail()
+      .trim()
+      .custom(async email => {
+          const value = await isEmailInUse(email);
+          if (value) {
+              throw new Error('E-mail is already in use.');
+          }
+      })
+      .withMessage('Invalid e-mail address.'),
+  check('password')
+      .exists()
+      .isLength({ min: 8 })
+      .escape()
+      .trim()
+      .withMessage('Invalid password. (Use at least 8 characters!)'),
+  check('rePassword').exists().custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('The passwords are not the same.');
+      }    
+      return true;
+    })
+], function (req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    var errormsg = errors.array()[0].msg;
+    console.log(errormsg);
+    return res.render('register', { title: 'Register', message: errormsg});
+  } else {
+      const username = req.body.username;
+      const email = req.body.email;
+      const pass = crypto.createHash('sha1').update(secrets.pass_salt + '' + req.body.password).digest('hex');
+      var sql = mysql.format("INSERT INTO `users` (`userid`, `username`, `password`, `email`, `rgb`, `pro`, `mbused`) VALUES ('" + Math.floor(Math.random() * Math.floor(999999)) + "', '" + username + "', '" + pass + "', '" + email + "', '', '0', '0')");
+      connection.query(sql, function (err, result) {
+        if (err) throw err;
+        console.log("New user registered: " + username);
+      });
+      res.render('login',{req:req, 'title':'Login', 'message': "Registered successfully. Please log in."});
   }
-  else {
-    reportErr(res, req, "No data passed.");
-  }
+});
+app.post("/login", passport.authenticate('local', {
+  successRedirect: '/profile',
+  failureRedirect: '/login',
+  failureFlash: true
+}), function(req, res, info){
+  res.render('login',{'message' :req.flash('message')});
 });
 app.get('/upload/*', async function(req, res){
   var reqres = req.url.split("/")[2];
@@ -230,15 +336,10 @@ app.get('/upload/*', async function(req, res){
 app.get('/user-upload/*', async function(req, res){
   var reqres = req.url.split("/")[3];
   var jsfn = "./public/json/" + reqres + ".json";
-  console.log("Trying to access " + jsfn);
   var fileContent = "none.";
   fs.readFile(jsfn, function(err, data){
     if(err){
       reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
-    }
-    else {
-      console.log(data);
-      fileContent = data;
     }
     console.log(fileContent);
     if (fileContent == "none."){
@@ -253,8 +354,10 @@ app.get('/user-upload/*', async function(req, res){
   });
 });
 app.get('/forget', function(req, res){
-  res.clearCookie('userCookie');
-  res.redirect('back');
+  req.session.destroy();
+  res.clearCookie('JSESSION');
+  req.logout();
+  res.redirect('/');
 });
 app.get('/pubdir/*', function(req, res, next) {
   var dir = req.url.replace('/pubdir/','');
@@ -341,20 +444,12 @@ app.get('/pubdir/*', function(req, res, next) {
   });
 });
 app.get('/mydir/*', async function(req, res, next) {
-  if(typeof(req.cookies.idCookie) == "undefined"){
+  if (!req.isAuthenticated()){
     reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
-  const privateUID = await keyv.get(req.cookies.idCookie);
-  console.log(privateUID);
-  console.log(privateUID.name + " while " + req.cookies.userCookie);
-  console.log(privateUID.name != req.cookies.userCookie);
-  if(typeof(privateUID) == "undefined" || privateUID.name != req.cookies.userCookie){
-    reportErr(res, req, "You have been incorrectly logged in.");
-    return;
-  }
-  var usrName = privateUID.name;
-  console.log(usrName);
+  console.log(req.session.user);
+  var usrName = req.session.user.username;
   var dir = req.url.replace('/mydir/','');
   if (!dir.endsWith("/")){
     dir = dir + "/";
@@ -365,8 +460,6 @@ app.get('/mydir/*', async function(req, res, next) {
   else{
     isHomeDir = false;
   }
-  console.log(dir);
-  console.log(isHomeDir);
   var folder = './public/user/' + usrName + '/' + dir;
   console.log(folder);
   fs.readdir(folder, options, (err, files) => {
@@ -447,16 +540,12 @@ app.get("/delete/*", async function(req, res, next){
     reportErr(res, req, "Please enter the name of the file that you want to delete.");
     return;
   }
-  if(typeof(req.cookies.idCookie) == "undefined"){
+  console.log(req.isAuthenticated());
+  if(!req.isAuthenticated()){
     reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
-  const privateUID = await keyv.get(req.cookies.idCookie);
-  if(typeof(privateUID) == "undefined" || privateUID.name != req.cookies.userCookie){
-    reportErr(res, req, "You have been incorrectly logged in.");
-    return;
-  }
-  var usrName = privateUID.name;
+  var usrName = req.session.user.username;
   console.log(fileToD);
   if (fs.existsSync(path.normalize("./public/user/" + usrName + "/" + fileToD))){
     if (fileToD.includes("..")){
@@ -470,6 +559,11 @@ app.get("/delete/*", async function(req, res, next){
   else {
     reportErr(res, req, "File does not exist.");
   }
+});
+app.get('/profile', isAuthenticated, function(req, res){
+  console.log("REQSESUSER BELOW");
+  var user = req.session.user;
+  res.render('profile', { req: req, title: "Your Profile", user: user });
 });
 /* 
   API handlers
@@ -588,5 +682,37 @@ function reportSuccess(res, req, sucStr, sucUrl) {
 function stringEscape(s) {
   return s ? s.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/\t/g,'\\t').replace(/\v/g,'\\v').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/[\x00-\x1F\x80-\x9F]/g,hex) : s;
   function hex(c) { var v = '0'+c.charCodeAt(0).toString(16); return '\\x'+v.substr(v.length-2); }
+}
+function isMentionNameInUse(username){
+  return new Promise((resolve, reject) => {
+      connection.query('SELECT COUNT(*) AS total FROM users WHERE username = ?', [username], function (error, results, fields) {
+          if(!error){
+              console.log("MENTION COUNT : "+results[0].total);
+              return resolve(results[0].total > 0);
+          } else {
+            console.log(error);
+              return reject(new Error('Database error!'));
+          }
+        }
+      );
+  });
+}
+function isEmailInUse(email){
+  return new Promise((resolve, reject) => {
+    connection.query('SELECT COUNT(*) AS total FROM users WHERE email = ?', [email], function (error, results, fields) {
+          if(!error){
+              console.log("EMAIL COUNT : "+results[0].total);
+              return resolve(results[0].total > 0);
+          } else {
+              return reject(new Error('Database error!'));
+          }
+        }
+      );
+  });
+}
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+  res.redirect('/login');
 }
 module.exports = app;
