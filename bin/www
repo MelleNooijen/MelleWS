@@ -134,6 +134,9 @@ function onRequest(request, req) {
       var statCol = colors.grey;
     }
     var logIndicator = colors.cyan("[Response]")
+    if (typeof(req.req.rawHeaders[3]) == "undefined"){
+      var logIndicator = colors.cyan("[VB Response]")
+    }
     if (req.req.rawHeaders[3].match("curl")) {
       var logIndicator = colors.cyan("[API Response]")
     }
