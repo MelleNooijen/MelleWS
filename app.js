@@ -212,7 +212,7 @@ app.post('/upl', async function(req, res){
                     return;
                   }
                 });
-                var fullUrl = "http://mellemws.my.to/" + fuType + "/" + filenameToUpload;
+                var fullUrl = "http://mellemws.my.to/" + fuType + "/" + safeName;
                 reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType + "/" + filenameToUpload + ".", fullUrl);
                 return;
               });
@@ -272,9 +272,7 @@ app.post('/register', [
       .withMessage('Invalid e-mail address.'),
   check('password')
       .exists()
-      .isLength({ min: 8 })
-      .escape()
-      .trim()
+      .isLength({ min: 8, max: 256 })
       .withMessage('Invalid password. (Use at least 8 characters!)'),
   check('rePassword').exists().custom((value, { req }) => {
       if (value !== req.body.password) {
@@ -288,7 +286,7 @@ app.post('/register', [
     console.log(errors.array());
     var errormsg = errors.array()[0].msg;
     console.log(errormsg);
-    return res.render('register', { title: 'Register', message: errormsg});
+    return res.render('createuser', { req: req, message: errormsg});
   } else {
       const username = req.body.username;
       const email = req.body.email;

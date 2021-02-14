@@ -4,7 +4,7 @@ var router = express.Router();
 
 /* GET uidcreator page. */
 router.get('/signup', function(req, res, next) {
-  res.render('createuser', { req: req }); // renders signup page
+  res.render('createuser', { req: req , message: ""}); // renders signup page
 });
 
 module.exports = router;

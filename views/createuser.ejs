@@ -16,6 +16,9 @@
       <% } else { %>
         <h1>Register</h1>
         <p>Welcome to MelleWS. Here, you can register your account..</br>With your account, you can access your Drive, UserPages and more.</p>
+        <% if(message){ %>
+          <p style="color:red"><%= message %></p>
+        <% } %>
         <div class="w3-bar">
           <form class="w3-container w3-padding" action="/register" method="POST">
             <input class="w3-input" type="text" name="username" id="username" placeholder="Username" required>

@@ -13,8 +13,8 @@
     <div class="w3-container w3-center">
         <h1>Login</h1>
         <div class="w3-bar">
-            <% if (false) { %>
-                <p>You are logged in as <%= // %>. Click to <a href="/forget">log out</a>.</p>
+            <% if (req.isAuthenticated()) { %>
+                <p>You are logged in as <%= req.session.user.username %>. Click to <a href="/forget">log out</a>.</p>
             <% } else { %>
               <% if(message){ %>
                 <p style="color:red"><%= message %></p>
