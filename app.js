@@ -322,6 +322,7 @@ app.get('/upload/*', async function(req, res){
   fs.readFile(jsfn, function(err, data){
     if(err){
       reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
+      return;
     }
     else {
       console.log(data);
@@ -563,7 +564,7 @@ app.get('/mydir/*', async function(req, res, next) {
   });
 });
 app.get("/delete/*", async function(req, res, next){
-  var fileToD = req.url.replace('/delete/','')
+  var fileToD = encodeURIComponent(req.url.replace('/delete/',''));
   if (fileToD.startsWith("?flnm=")){
     fileToD = fileToD.replace("?flnm=","");
   }
