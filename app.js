@@ -459,6 +459,7 @@ app.get('/destroysessioncookie', function(req, res){
 app.get('/testsession', function(req,res){
   if(req.isAuthenticated()){
     res.write('[VALID] valid session\n');
+    console.log(req.session.user.rgb);
   }
   else{
     if(req.cookies.JSESSION){
@@ -591,9 +592,37 @@ app.get("/delete/*", async function(req, res, next){
   }
 });
 app.get('/profile', isAuthenticated, function(req, res){
-  console.log("REQSESUSER BELOW");
-  var user = req.session.user;
-  res.render('profile', { req: req, title: "Your Profile", user: user });
+  res.render('profile', { req: req, title: "Your Profile", user: req.session.user });
+});
+app.post('/profilesettings', function(req, res){
+  if(!req.isAuthenticated()){
+    reportErr("Please log in to set your favourite colour!");
+  }
+  else {
+    if(!req.body.color){
+      reportErr('Please set a colour from the Profile page, not an out-of-nowhere POST request without the proper syntax!')
+    }
+    else {
+      function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+        } : null;
+      }
+      var rgbString = hexToRgb(req.body.color).r + "," + hexToRgb(req.body.color).g + "," + hexToRgb(req.body.color).b;
+      console.log(rgbString);
+      connection.query("UPDATE `users` SET `rgb` = '" + rgbString + "' WHERE `users`.`username` = '" + req.session.user.username + "'", function(err, data){
+        if(err){
+          throw err;
+        }
+        console.log(req.session.user.rgb);
+        req.session.user.rgb = rgbString;
+        res.redirect('/profile');
+      });
+    }
+  }
 });
 /* 
   API handlers

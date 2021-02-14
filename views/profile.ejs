@@ -28,7 +28,17 @@
           </tr>
           <tr>
             <td class="tg-0pky">Colour Preference</td>
-            <td class="tg-0pky w3-center" style="color:rgb(<%= user.rgb %>)">██</td>
+            <td class="tg-0pky w3-center">
+              <form action="/profilesettings" method="POST">
+                <% if(user.rgb == ""){ %>
+                  <input type="color" name="color" id="color" value="#B4B4B4" required/>
+                <% } else { %>
+                  <% var a = user.rgb; a = a.split(","); var b = a.map(function(x){ x = parseInt(x).toString(16); return (x.length==1) ? "0"+x : x; }); b = "#"+b.join(""); var hexcol = b %>
+                  <input type="color" name="color" id="color" value="<%= hexcol %>" required/>
+                <% } %>
+                <button type="sumbit">Save</button>
+              </form>
+            </td>
           </tr>
         </tbody>
       </table>

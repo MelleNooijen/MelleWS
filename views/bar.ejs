@@ -1,5 +1,10 @@
 <link rel="stylesheet" href="/stylesheets/bar.css"/>
-<% if(typeof(barCol) === "undefined"){ var barCol = "180,180,180.black" } %>
+<% if(!(typeof(req.session.user) === "undefined" || req.session.user.rgb == '')){ %>
+  <% if(typeof(barCol) === "undefined"){ var barCol = req.session.user.rgb + ".black" || "180,180,180.black" %>
+  <% } else if(barCol == "180,180,180.white"){ var barCol = req.session.user.rgb + ".white" || "180,180,180.white"} %>
+<% } else { %>
+  <% if(typeof(barCol) === "undefined"){ var barCol = "180,180,180.black" } %>
+<% } %>
 <ul class="w3-display-topmiddle menu-bar" id="mainBarDiv" style="background-color: rgba(<%= barCol.split(".")[0]%>,.4); color: <%= barCol.split(".")[1] %>;">
   <a href="/"><li class="li-icon"><img 
     src="/images/logo-<%= barCol.split(".")[1] %>-v2.svg"
