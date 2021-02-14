@@ -35,15 +35,23 @@ var crypto = require('crypto');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var sess = require('express-session');
-var Store = require('express-session').Store;
 var app = express();
-var BetterMemoryStore = require('session-memory-store')(sess);
-var store = new BetterMemoryStore({ expires: session_age, debug: true });
-
+var Store = require('express-session').Store;
+// var BetterMemoryStore = require('session-memory-store')(sess);
+// var store = new BetterMemoryStore({ expires: session_age, debug: true });
+var MySQLStore = require('connect-mysql')(sess);
+var storeoptions = {
+  config: {
+    host: secrets.sql_host,
+    user: secrets.sql_user,
+    password: secrets.sql_pwd,
+    database: "mellews"
+  }
+};
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(require('express-status-monitor')()) // /status page
+// app.use(require('express-status-monitor')()) // /status page
 // app.use(logger('dev')); // disble for prod
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -59,10 +67,10 @@ var connection = mysql.createConnection({
 app.use(sess({
   name: 'JSESSION',
   secret: secrets.session_secret,
-  store:  store,
+  store: new MySQLStore(storeoptions),
   resave: true,
   maxAge: new Date(Date.now() + session_age),
-  cookie: { path: '/', httpOnly: true, maxAge: session_age}, 
+  cookie: { path: '/', secure: false, httpOnly: true, maxAge: session_age}, 
   saveUninitialized: true
 }));
 app.use(flash());
@@ -352,10 +360,13 @@ app.get('/user-upload/*', async function(req, res){
   });
 });
 app.get('/forget', function(req, res){
-  req.session.destroy();
-  res.clearCookie('JSESSION');
-  req.logout();
-  res.redirect('/');
+  req.session.destroy(function (err) {
+    if(err){
+      console.log(err);
+      throw err;
+    }
+    res.redirect('/');
+  });
 });
 app.get('/pubdir/*', function(req, res, next) {
   var dir = req.url.replace('/pubdir/','');
@@ -440,6 +451,27 @@ app.get('/pubdir/*', function(req, res, next) {
     });
     res.render('directory', { req: req, title: 'Public Directory', dirArray: fileArray, ihd: isHomeDir, curfol: folder, isUser: false});
   });
+});
+app.get('/destroysessioncookie', function(req, res){
+  res.cookie('JSESSION','', { maxAge: xyears, httpOnly: true });
+  res.redirect("/testsession");
+});
+app.get('/testsession', function(req,res){
+  if(req.isAuthenticated()){
+    res.write('[VALID] valid session\n');
+  }
+  else{
+    if(req.cookies.JSESSION){
+      res.write('[INVALID] reporting non-auth, session exists because JSESSION cookie was not destroyed, use /destroysessioncookie\n');
+    }
+    else if(req.session){
+      res.write('[INVALID] reporting non-auth, session exists because session was ended invalidly\n');
+    }
+    else{
+      res.write("[VALID] not authenticated\n");
+    }
+  }
+  res.end("end of output");
 });
 app.get('/mydir/*', async function(req, res, next) {
   if (!req.isAuthenticated()){
