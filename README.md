@@ -49,19 +49,15 @@ And at last, you can start MelleWS:
 **Linux:**
 (if you chose nodemon)
 ```bash
-sudo nodemon ./bin/www
+sudo nodemon --ignore './public/json/' ./bin/www
 ```
 (if you didn't choose nodemon)
 ```bash
-sudo node ./bin/www
+sudo ./launcher.sh
 ```
 **Windows:**
 ```batch
-launcher-prod
-```
-Or to start in Debug Mode (not recommended):
-```batch
-launcher-adv
+launcher
 ```
 
 Done!
