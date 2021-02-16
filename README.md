@@ -34,7 +34,7 @@ Then, go to the folder in which the repository was cloned:
 ```bash
 cd MelleWS
 ```
-Install `nodemon` so you can run MelleWS properly:
+If you wish to use `nodemon` so you don't have to restart after making changes, see the steps below.
 ```bash
 npm install -g nodemon
 ```
@@ -47,8 +47,13 @@ npm install
 And at last, you can start MelleWS:
 
 **Linux:**
+(if you chose nodemon)
 ```bash
-nodemon /bin/www
+sudo nodemon ./bin/www
+```
+(if you didn't choose nodemon)
+```bash
+sudo node ./bin/www
 ```
 **Windows:**
 ```batch
