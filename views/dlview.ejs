@@ -22,6 +22,11 @@
         <p>Uploader: <%= flobj.usrnm %></p>
         <p>Type: <%= flobj.type.split('/')[0] %> (<%= flobj.type.split('/')[1] %>)</p>
         <p>Size: <%= tempFlSz %> MB</p>
+        <% if(viewData[0]){ %>
+        <p>Views: <%= JSON.parse(viewData[0].views).count %> </p>
+        <% } else { %>
+        <p>Views: 0</p>
+        <% } %>
         <% if(private){ %>
           <% if(!req.isAuthenticated()){%>
             <a class="w3-button w3-teal w3-disabled" href="#">Log in to see your private files.</a>
@@ -34,5 +39,23 @@
           <a class="w3-button w3-teal" href="/direct/<%= encodeURIComponent(flobj.name) %>" download="<%= decodeURIComponent(flobj.name) %>">Download</a>
         <% } %>
     </div>
+    <% if(req.session.user.username == flobj.usrnm && viewData[0]) {%>
+      <table class="w3-table w3-bordered w3-display-topright w3-margin" style="width:15%">
+        <tbody>
+          <tr>
+            <td class="tg-1wig"><strong>Name</strong></td>
+            <td class="tg-1wig"><strong>Date</strong></td>
+          </tr>
+          <% viewTable = JSON.parse(viewData[0].views).views %>
+          <% viewTable.forEach(function(view){ %>
+            <tr>
+              <td class="tg-1wig"><%= view.name %></td>
+              <td class="tg-1wig"><%= view.time.split("T")[0] + " " + view.time.split("T")[1].substring(0,5) + " UTC" %></td>
+            </tr>
+            <% console.log(view) %>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
     </body>
 </html>

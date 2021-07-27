@@ -19,7 +19,7 @@ const mime = require('mime-types');
 const options = {withFileTypes: true};
 var session_age = 1000*60*60*24*365*10 // msecs*secs*mins*hrs*days*years
 const { check,validationResult } = require('express-validator');
-
+var verFile = fs.readFileSync("version.txt",{encoding: "utf-8"});
 var secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
@@ -89,7 +89,6 @@ passport.use('local', new LocalStrategy({
     connection.query("select * from users where username = ?", [username], function(err, rows){
     console.log(err);
     console.log("ROWS BELOW");
-    console.log(rows[0]);
     if (err) return done(null, false, req.flash('message', "An internal error occurred."));
     if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
     salt = salt+''+password;
@@ -108,7 +107,6 @@ passport.serializeUser(function(user, done){
 });
 passport.deserializeUser(function(id, done){
   connection.query("select * from users where userid = " + id, function (err, rows){
-    console.log(rows);  
     done(err, rows[0]);
   });
 });
@@ -121,7 +119,6 @@ app.get('/login', function(req, res){
   res.render('login', { req: req, message: req.flash('message') });
 });
 app.get('/unco', uncoRouter);
-
 var apiHeader = "     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n";
 
 // test HTTP codes
@@ -154,6 +151,12 @@ app.get('/reqtesthandle', function(req, res){
   var parsedUrlString = url.parse(req._parsedOriginalUrl.href.toString());
   res.write("Request received, looks like:<br/>");
   res.write("<pre>" + parsedUrlString + "</pre>");
+  res.end();
+});
+
+// - version
+app.get('/version', function(req, res){
+  res.write("Current version: " + verFile.split("\n")[0] + "\n\nChangelog:\n" + verFile.split("\n").filter(function(x) { return x !== verFile.split("\n")[0]; }).join("\n"));
   res.end();
 });
 // ---
@@ -334,11 +337,81 @@ app.get('/upload/*', async function(req, res){
     }
     else {
       var parsedFC = JSON.parse(fileContent);
-      console.log(parsedFC);
-      res.render("dlview", { req: req, flobj: parsedFC, private: false});
+      var filetosim = reqres;
+      connection.query("SELECT * FROM `fileviews` WHERE `file` = '" + filetosim + "' ", function(err, data){
+        if(err){
+          throw err;
+        }
+        console.log(data);
+        if(!data[0]){
+          console.log("File has not been viewed yet.");
+          var regFile = {count:1,views:[{name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}]}
+          var query = mysql.format("INSERT INTO `fileviews`(`file`, `views`) VALUES ('" + filetosim + "','" + JSON.stringify(regFile) + "')");
+          connection.query(query, function(err, data){
+            if(err){
+              throw err;
+            }
+          })
+        }
+        else{
+          var originalObj = JSON.parse(data[0].views);
+          console.log(originalObj);
+          var newCount = originalObj.count + 1;
+          //console.log(originalObj.views.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}));
+          var viewArray = originalObj.views;
+          viewArray.push({name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
+          var regFile = {count:newCount,views:viewArray};
+          console.log(regFile);
+          // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
+          var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
+          connection.query(query, function(err, data){
+            if(err){
+              throw err;
+            }
+          })
+        }
+        res.render("dlview", { req: req, flobj: parsedFC, private: false, viewData: data});
+      });
       return parsedFC;
     }
   });
+});
+app.get('/simulate-view', function(req, res){
+  var filetosim = "test3.file";
+  connection.query("SELECT * FROM `fileviews` WHERE `file` = '" + filetosim + "' ", function(err, data){
+    if(err){
+      throw err;
+    }
+    console.log(data);
+    if(!data[0]){
+      console.log("File has not been viewed yet.");
+      var regFile = {count:1,views:[{name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}]}
+      var query = mysql.format("INSERT INTO `fileviews`(`file`, `views`) VALUES ('" + filetosim + "','" + JSON.stringify(regFile) + "')");
+      connection.query(query, function(err, data){
+        if(err){
+          throw err;
+        }
+      })
+    }
+    else{
+      var originalObj = JSON.parse(data[0].views);
+      console.log(originalObj);
+      var newCount = originalObj.count + 1;
+      //console.log(originalObj.views.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}));
+      var viewArray = originalObj.views;
+      viewArray.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
+      var regFile = {count:newCount,views:viewArray};
+      console.log(regFile);
+      // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
+      var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
+      connection.query(query, function(err, data){
+        if(err){
+          throw err;
+        }
+      })
+    }
+  });
+  res.end('simmed view on file ' + filetosim);
 });
 app.get('/user-upload/*', async function(req, res){
   var reqres = req.url.split("/")[3];
@@ -460,7 +533,6 @@ app.get('/destroysessioncookie', function(req, res){
 app.get('/testsession', function(req,res){
   if(req.isAuthenticated()){
     res.write('[VALID] valid session\n');
-    console.log(req.session.user.rgb);
   }
   else{
     if(req.cookies.JSESSION){
@@ -480,7 +552,6 @@ app.get('/mydir/*', async function(req, res, next) {
     reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
-  console.log(req.session.user);
   var usrName = req.session.user.username;
   var dir = req.url.replace('/mydir/','');
   if (!dir.endsWith("/")){
@@ -564,21 +635,21 @@ app.get('/mydir/*', async function(req, res, next) {
   });
 });
 app.get("/delete/*", async function(req, res, next){
-  var fileToD = encodeURIComponent(req.url.replace('/delete/',''));
+  var fileToD = req.url.replace('/delete/','');
   if (fileToD.startsWith("?flnm=")){
     fileToD = fileToD.replace("?flnm=","");
   }
+  fileToD = encodeURIComponent(fileToD);
+  console.log(req.body);
   if (fileToD == ""){
     reportErr(res, req, "Please enter the name of the file that you want to delete.");
     return;
   }
-  console.log(req.isAuthenticated());
   if(!req.isAuthenticated()){
     reportErr(res, req, "You are not logged in.\nPlease <a href='/login'>log in</a> to see your files.");
     return;
   }
   var usrName = req.session.user.username;
-  console.log(fileToD);
   if (fs.existsSync(path.normalize("./public/user/" + usrName + "/" + fileToD))){
     if (fileToD.includes("..")){
       reportErr(res, req, "You cannot delete files that are outside your User Directory.");
@@ -591,6 +662,30 @@ app.get("/delete/*", async function(req, res, next){
   else {
     reportErr(res, req, "File does not exist.");
   }
+});
+app.get('/editmydir', isAuthenticated, function(req, res){
+  res.render('diredit', { req: req });
+});
+app.post('/editmydir/*', isAuthenticated, function(req, res){
+  console.log(req);
+  var action = req.url.replace("/editmydir/","");
+  if(action == "newfile"){
+    var filenameToCreate = req.body.nfname.replace(/ /g, "_");
+    //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+    filenameToCreate = encodeURIComponent(filenameToCreate);
+    var safeName = filenameToCreate;
+    stringEscape(safeName);
+    console.log("going to create file " + safeName + " with content " + req.body.nfcontent)
+    fs.writeFileSync("./public/user/" + req.session.user.username + "/" + safeName,req.body.nfcontent);
+  } else if(action == "newdir") {
+    console.log("going to create directory " + req.body.ndname + ".")
+    
+    fs.mkdirSync("./public/user/" + req.session.user.username + "/" + safeName);
+  } else {
+    reportErr(res, req, "Unknown action " + action);
+    return;
+  }
+  res.redirect('/mydir/');
 });
 app.get('/profile', isAuthenticated, function(req, res){
   res.render('profile', { req: req, title: "Your Profile", user: req.session.user });
@@ -625,6 +720,7 @@ app.post('/profilesettings', function(req, res){
     }
   }
 });
+
 /* 
   API handlers
 */

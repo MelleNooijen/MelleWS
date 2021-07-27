@@ -2,6 +2,7 @@
     from {margin:10px 0 0 0;}
     to {margin:-30px 0 0 0;}
 }
+
 .menu-bar {
     position: fixed;
     border-radius: 50px;
@@ -15,6 +16,7 @@
     padding: 0 10px;
     transition: 0.5s;
 }
+
 .dmb {
     margin: -30px 0 0 0;
     animation: showanim 1s;
@@ -26,6 +28,12 @@
     padding: 12px 16px;
     position: relative;
     white-space: nowrap;
+}
+@media only screen 
+    and (max-width : 640px) {
+    .menu-bar li {
+        padding: 3px 4px;
+    }
 }
 .menu-bar li.li-item{
     margin: 0 8px;

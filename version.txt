@@ -1,0 +1,6 @@
+0.9b1-unstable
+Planned features:
+    [x] User Directory improvements
+    [x] Version display improvements
+    [ ] Shared Directories
+    [x] List of file views in dlview

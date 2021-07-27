@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <style>
+        .inpbox {
+            background-color: whitesmoke;
+        }
+    </style>  
+  </head>
+  <body>
+    <%- include('bar', {req: req}); %>
+    <br/>
+    <br/>
+    <br/>
+    <div class="w3-center">
+        <h1>Edit <%= req.session.user.username %>'s Directory</h1>
+        <div class="w3-display-middle w3-container">
+            <div class="w3-card w3-margin w3-margin-top" style="display: inline-block;">
+                <div class="w3-container">
+                  <h2 class="w3-text-teal">New file</h2>
+                </div>
+                <form class="w3-container w3-padding dropzone" action="/editmydir/newfile" method="post" class="w3-padding">
+                  <label for="filetoupload">Filename</label>
+                  <input class="w3-input inpbox" name="nfname" id="nfname" required>
+                  <label for="dispmetd">File content</label>
+                  <textarea class="w3-input inpbox" name="nfcontent" id="nfcontent" cols="20" rows="5"></textarea>
+                  <input class="w3-button" type="submit">
+                </form>
+            </div>
+            <div class="w3-card w3-margin w3-margin-top" style="display: inline-block;">
+                <div class="w3-container">
+                  <h2 class="w3-text-teal">New directory</h2>
+                </div>
+                <form class="w3-container w3-padding" action="/editmydir/newdir" method="post" class="w3-padding">
+                  <label for="filetoupload">Name</label>
+                  <input class="w3-input inpbox" name="ndname" id="ndname" required>
+                  <input class="w3-button" type="submit">
+                </form>
+            </div>
+        </div>
+    </div>
+  </body>
+</html>

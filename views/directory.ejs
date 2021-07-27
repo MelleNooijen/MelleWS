@@ -5,48 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <% if(isUser){ %>
-      <style>
-        * {box-sizing: border-box;}
-        .form-popup {
-          display: none;
-          position: fixed;
-          bottom: 0px;
-          left: 8%;
-          border: 3px solid #f1f1f1;
-          z-index: 9;
-        }
-        .form-container {
-          max-width: 300px;
-          padding: 10px;
-          background-color: white;
-        }
-        .form-container input[type=text], .form-container input[type=password] {
-          width: 100%;
-          padding: 15px;
-          margin: 5px 0 22px 0;
-          border: none;
-          background: #f1f1f1;
-        }
-        .form-container input[type=text]:focus, .form-container input[type=password]:focus {
-          background-color: #ddd;
-          outline: none;
-        }
-        .form-container .btn {
-          background-color: #4CAF50;
-          color: white;
-          padding: 16px 20px;
-          border: none;
-          cursor: pointer;
-          width: 33%;
-          margin-bottom:10px;
-          opacity: 0.8;
-        }
-        .form-container .cancel {
-          background-color: red;
-        }
-        </style>
-      <% } %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
     <%- include('bar', {req: req}); %>
@@ -83,12 +42,18 @@
           <td><strong>Name</strong></td>
           <td><strong>Type</strong></td>
           <td><strong>Upload date</strong></td>
+          <% if(isUser){ %>
+            <td><strong>Actions</strong></td>
+          <% } %>
         </tr>
         <% if(!ihd){ %>
         <tr>
           <td><a href="../" class="updir">⮤ ..</a></td>
           <td></td>
           <td></td>
+          <% if(isUser){ %>
+          <td></td>
+          <% } %>
         </tr>
         <% } %>
         <% if(!isUser && req.isAuthenticated()){ %>
@@ -107,6 +72,7 @@
             </svg>  <a href="/pubdir/" class="dir text updir"><strong>Public Directory</strong></a></td>
             <td></td>
             <td></td>
+            <td></td>
           </tr>
         <% } %>
         <% dirArray.forEach(function(file){%>
@@ -115,6 +81,7 @@
               <td><span><svg class="icon svg-icon svg-baseline" viewBox="0 0 20 20">
                 <path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z"></path>
               </svg>  <a href="./<%= file.name %>/" class="dir text"><%= file.name %></a></span></td>
+              <td></td>
               <td></td>
               <td></td>
             <% } else {%>
@@ -134,33 +101,19 @@
                 <% } else { %>
                   <path d="M15.475,6.692l-4.084-4.083C11.32,2.538,11.223,2.5,11.125,2.5h-6c-0.413,0-0.75,0.337-0.75,0.75v13.5c0,0.412,0.337,0.75,0.75,0.75h9.75c0.412,0,0.75-0.338,0.75-0.75V6.94C15.609,6.839,15.554,6.771,15.475,6.692 M11.5,3.779l2.843,2.846H11.5V3.779z M14.875,16.75h-9.75V3.25h5.625V7c0,0.206,0.168,0.375,0.375,0.375h3.75V16.75z"></path>
                 <% } %>
+                <% console.log("CURFOL = " + curfol) %>
               </svg>  <a href="<%= curfol.replace("./public","") + encodeURIComponent(file.name) %>" class="item text" download="<%= decodeURIComponent(file.name) %>"><%= decodeURIComponent(file.name) %></a></span></td>
               <td><%= file.type %></td>
               <td><%= file.date %></td>
+              <% if(isUser){ %>
+                <td><a href="/delete/<%= file.name %>" class="item text"><i class="fa fa-trash" style="color:red;"></i></a></td>
+              <% } %>
             <% } %>
           </tr>
         <% }); %>
       </table>
       <% if(isUser){ %>
-        <button class="w3-display-bottomleft w3-button w3-red w3-margin" onclick="openForm()">Delete</button>
-        <div class="form-popup" id="myForm">
-          <form action="/delete/" class="form-container">
-            <h1>Delete</h1>
-            <label for="flnm"><b>Filename</b></label>
-            <input type="text" placeholder="Enter Filename" name="flnm" required>
-            <button type="submit" class="btn">Delete</button>
-            <button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
-          </form>
-        </div>
-        <script>
-        function openForm() {
-          document.getElementById("myForm").style.display = "block";
-        }
-        
-        function closeForm() {
-          document.getElementById("myForm").style.display = "none";
-        }
-        </script>
+        <a href="/editmydir"><button class="w3-margin w3-button w3-teal">New</button></a>
       <% } %>
     </div>
   </body>
