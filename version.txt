@@ -4,3 +4,4 @@ Planned features:
     [x] Version display improvements
     [ ] Shared Directories
     [x] List of file views in dlview
+    [ ] move away from w3.css

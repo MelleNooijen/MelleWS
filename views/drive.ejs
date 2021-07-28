@@ -3,27 +3,29 @@
   <head>
     <title>MelleWS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="/stylesheets/drive.css"/>
   </head>
   <body>
     <%- include('bar', {req: req}); %>
     <br/>
     <br/>
     <br/>
-    <p class="w3-margin-left">Welcome to MWSDrive, a free storage applet with a maximum upload size of 100 MB.</p>
-    <div class="w3-card w3-margin w3-margin-top" style="display: inline-block;">
-        <div class="w3-container">
-          <h2 class="w3-text-teal">Upload</h2>
+    <p class="welcome_msg">Welcome to MWSDrive, a free storage applet with a maximum upload size of 100 MB.</p>
+    <div class="card_wrapper" style="display: inline-block;">
+        <div class="upload_container">
+          <h2 class="upload">Upload</h2>
         </div>
-        <form class="w3-container w3-padding dropzone" action="upl" method="post" enctype="multipart/form-data" class="w3-padding">
-          <input class="w3-input" type="file" name="filetoupload" id="dzf" required>
-          <label for="dispmetd">Save file to...</label>
-          <select class="w3-input" name="dispmetd" id="dispmetd">
-            <option value="dm_pubdir">Public Directory</option>
-            <option value="dm_hide">Public Directory (hidden)</option>
-            <option value="dm_personal">User Directory</option>
-          </select>
-          <input class="w3-button" type="submit">
+        <form class="form_container" action="upl" method="post" enctype="multipart/form-data">
+          <input class="upload_input" type="file" name="filetoupload" id="dzf" required>
+          <div class="label_wrapper">
+            <label for="dispmetd">Save file to...</label>
+            <select class="directory_select" name="dispmetd" id="dispmetd">
+              <option value="dm_pubdir">Public Directory</option>
+              <option value="dm_hide">Public Directory (hidden)</option>
+              <option value="dm_personal">User Directory</option>
+            </select>
+          </div>
+          <input class="submit_input" type="submit">
         </form>
     </div>
   </body>

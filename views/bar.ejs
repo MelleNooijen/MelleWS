@@ -5,7 +5,7 @@
 <% } else { %>
   <% if(typeof(barCol) === "undefined"){ var barCol = "180,180,180.black" } %>
 <% } %>
-<ul class="w3-display-topmiddle menu-bar" id="mainBarDiv" style="background-color: rgba(<%= barCol.split(".")[0]%>,.4); color: <%= barCol.split(".")[1] %>;">
+<ul class="menu-bar" id="mainBarDiv" style="background-color: rgba(<%= barCol.split(".")[0]%>,.4); color: <%= barCol.split(".")[1] %>;">
   <a href="/"><li class="li-icon"><img 
     src="/images/logo-<%= barCol.split(".")[1] %>-v2.svg"
     alt="MelleWS"

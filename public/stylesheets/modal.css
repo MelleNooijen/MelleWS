@@ -30,10 +30,14 @@
 .tongue {
     float: left;
     font-size: 32px;
-  }
+    transition: transform 0.4s ease;
+}
+.tongue:hover{
+  transform: rotateZ(-180deg);
+}
 .close:hover,
 .close:focus {
-    color: black;
+    color: rgb(255, 255, 255);
     text-decoration: none;
     cursor: pointer;
 }

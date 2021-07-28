@@ -871,4 +871,9 @@ function isAuthenticated(req, res, next) {
     return next();
   res.redirect('/login');
 }
+
+app.listen(3000, () => {
+  console.log("yooo");
+})
+
 module.exports = app;
