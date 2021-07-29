@@ -75,6 +75,7 @@
       var modal = document.getElementById("myModal");
       var btn = document.getElementById("myBtn");
       var span = document.getElementsByClassName("close")[0];
+      var seper = document.getElementsByClassName("seperator")[0];
       btn.onclick = function() {
         modal.style.display = "block";
         modal.style.opacity = "1";
@@ -82,6 +83,9 @@
       span.onclick = function() {
         modal.style.display = "none";
         modal.style.opacity = "0";
+      }
+      seper.onclick = function() {
+        alert("JoostWS mode activated");
       }
       window.onclick = function(event) {
         if (event.target == modal) {

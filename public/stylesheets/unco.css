@@ -1,0 +1,31 @@
+:root{
+    --Prim: rgb(255, 0, 183);
+    --Back: rgb(230, 230, 230);
+    --btn: rgb(68, 68, 68);
+}
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--Back);
+}
+
+.text_wrapper{
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    left: 50%;
+    transform: translate(-50%, 0);
+    color: rgb(80, 74, 67);
+}
+.img_wrapper{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+}
+.consr_img{
+    width: clamp(200px, 100%, 600px);
+}

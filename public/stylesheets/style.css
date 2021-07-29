@@ -1,3 +1,9 @@
+:root{
+  --Prim: rgb(255, 0, 183);
+  --Back: rgb(230, 230, 230);
+  --btn: rgb(68, 68, 68);
+}
+
 a.dir {
   color: #009688;
   text-decoration: none;
@@ -17,13 +23,16 @@ table {
 }
 
 td, th {
-  border: 1px solid #dddddd;
+  border: 1px transparent;
+  border-radius: 25px;
   text-align: left;
-  padding: 8px;
+  padding: 12px;
 }
 
 tr:nth-child(even) {
-  background-color: #dddddd;
+  
+  background-color: transparent;
+  overflow: hidden;
 }
 .svg-icon {
   width: 1em;
@@ -73,3 +82,24 @@ tr:nth-child(even) {
 .dropdown-content a:hover {background-color: #ddd;}
 
 .drop:hover + .dropdown-content {display: block;}
+
+.main_btn{
+  font-size: 16px;
+  font-weight: 600;
+  background: transparent;
+  border: 3px solid var(--btn);
+  color: var(--btn);
+  border-radius: 15px;
+  padding: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  transition: all 0.4s ease-out;
+}
+
+.main_btn:hover{
+  border-bottom-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-color: var(--Prim);
+  color: var(--Prim);
+  cursor: pointer;
+}
