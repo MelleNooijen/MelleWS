@@ -9,39 +9,39 @@ var debug = require('debug')('mellews-noview:server');
 var legHttp = require('http');
 var http = require('https');
 var https = require('https');
-//var privateKey  = fs.readFileSync('sslcert/privkey.pem', 'utf8');
-//var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
+var privateKey  = fs.readFileSync('sslcert/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
 var colors = require('colors');
-//var credentials = {key: privateKey, cert: certificate};
+var credentials = {key: privateKey, cert: certificate};
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '80');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 var legacyServer = legHttp.createServer(app);
-//var server = http.createServer(credentials, app);
-//var httpsServer = https.createServer(credentials, app);
+var server = http.createServer(credentials, app);
+var httpsServer = https.createServer(credentials, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-legacyServer.listen(port);
-//server.listen(443);
-//httpsServer.listen(8443);
+legacyServer.listen(80);
+server.listen(443);
+httpsServer.listen(8443);
 legacyServer.on('error', onError);
 legacyServer.on('listening', onListening);
 legacyServer.on('request', onSecRequest);
-//server.on('error', onError);
-//server.on('listening', onListening);
-//server.on('request', onRequest);
-//httpsServer.on('error', onError);
-//httpsServer.on('listening', onListening);
-//httpsServer.on('request', onSecRequest);
+server.on('error', onError);
+server.on('listening', onListening);
+server.on('request', onRequest);
+httpsServer.on('error', onError);
+httpsServer.on('listening', onListening);
+httpsServer.on('request', onSecRequest);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -96,8 +96,7 @@ function onError(error) {
  */
 
 function onListening() {
-  //var addr = server.address();
-  var addr = legacyServer.address();
+  var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
