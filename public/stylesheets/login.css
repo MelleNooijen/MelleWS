@@ -17,10 +17,6 @@ body{
     transform: translate(0, -50%);
 }
 
-.login_wrapper{
-
-}
-
 .login_card{
     position: absolute;
     top: 50%;
