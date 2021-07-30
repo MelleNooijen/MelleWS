@@ -2,6 +2,14 @@
     from {margin:10px 0 0 0;}
     to {margin:-30px 0 0 0;}
 }
+a {
+    color: inherit;
+    background-color: transparent;
+}
+a:active,
+a:hover {
+    outline-width: 0;
+}
 .menu-bar {
     position: fixed;
     left: 50%;

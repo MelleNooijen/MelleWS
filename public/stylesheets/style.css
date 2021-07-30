@@ -1,5 +1,5 @@
 :root{
-  --Prim: rgb(255, 0, 183);
+  --Prim: rgb(255, 0, 183); 
   --Back: rgb(230, 230, 230);
   --btn: rgb(68, 68, 68);
 }
@@ -94,6 +94,9 @@ tr:nth-child(even) {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   transition: all 0.4s ease-out;
+  /* background: linear-gradient(145deg, #cacaca, #f0f0f0); */
+  box-shadow:  18px 18px 38px #d5d5d5,
+               -18px -18px 38px #ebebeb;
 }
 
 .main_btn:hover{
@@ -102,4 +105,6 @@ tr:nth-child(even) {
   border-color: var(--Prim);
   color: var(--Prim);
   cursor: pointer;
+  box-shadow:  inset 18px 18px 38px #d5d5d5,
+  inset -18px -18px 38px #ebebeb;
 }

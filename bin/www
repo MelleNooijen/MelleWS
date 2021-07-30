@@ -30,7 +30,7 @@ var legacyServer = legHttp.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-legacyServer.listen(3000);
+legacyServer.listen(port);
 //server.listen(443);
 //httpsServer.listen(8443);
 legacyServer.on('error', onError);
@@ -96,7 +96,8 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address();
+  //var addr = server.address();
+  var addr = legacyServer.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;

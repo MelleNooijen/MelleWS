@@ -35,7 +35,7 @@
   <body>
     <script>
       var images = ['bg1.svg', 'bg2.svg', 'bg3.svg', 'bg4.svg', 'bg5.svg'];
-      $('body').css({'background-image': 'url(../images/' + images[Math.floor(Math.random() * images.length)] + ')'});
+      $('body').css({'background': 'whitesmoke url(../images/' + images[Math.floor(Math.random() * images.length)] + ' center cover)'});
       console.log('url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
     </script>
     <%- include('bar', {req: req, barCol: "180,180,180.white"}); %>
@@ -50,11 +50,11 @@
     </div>
 
     <div class="site_header_wrapper">
-      <h1 class="header_title" style="font-size: 75px; font-weight: 500;"><b>MelleWS</b></h1>
-      <p class="webapp_version" style="color:rgba(168, 12, 245, 0.987); mix-blend-mode: difference; font-weight: 550;"><%= version %></p>
+      <h1 class="header_title" id="htitle" style="font-size: 75px; font-weight: 1;"><b>MelleWS</b></h1>
+      <p class="webapp_version" style="color:rgba(--Accent); mix-blend-mode: difference; font-weight: 550;"><%= version %></p>
       
       <hr class="seperator" style="background: linear-gradient(120deg, rgba(<%= barCol.split(".")[0]%>,.9) 0%, rgba(<%= barCol.split(".")[0]%>,.1) 75%); margin:auto;width:75%;">
-      <p class="header_info" style="font-size: 25px;"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
+      <p class="header_info" id="hsub" style="font-size: 25px;"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
     </div>
 
     <!--
@@ -65,10 +65,10 @@
 
     <footer class="main_footer">
       <div class="cpyright_wrapper">
-        <a id="myBtn" class="baritem" href="#">©</a> Melle Nooijen
+        <a id="myBtn" class="baritem" id="copyright" href="#">©</a>  <span id="name">Melle Nooijen</span>
       </div>
 
-      <a href="https://www.github.com/MelleNooijen/MelleWS" class="source_link_wrapper"><i class="fab fa-github fa-2x" id="github_logo" style="color:rgb(0, 0, 0);"></i></a>
+      <a href="https://www.github.com/MelleNooijen/MelleWS" id="github" class="source_link_wrapper"><i class="fab fa-github fa-2x" id="github_logo" style="color:rgb(0, 0, 0);"></i></a>
       
     </footer>
     <script>
@@ -86,6 +86,12 @@
       }
       seper.onclick = function() {
         alert("JoostWS mode activated");
+        document.getElementById('htitle').innerText = "JoostWS";
+        document.getElementById('hsub').innerHTML = "<b>Welcome to JoostWS,<br/></b>a fast and reliable web platform with better CSS.";
+        document.getElementById('name').innerText = "Joost van Haag";
+        document.getElementsByTagName('body')[0].style.background = "linear-gradient(121deg, rgba(173,9,224,1) 0%, rgba(0,212,255,1) 100%)";
+        document.getElementsByTagName('body')[0].style.background = "-moz-linear-gradient(121deg, rgba(173,9,224,1) 0%, rgba(0,212,255,1) 100%)";
+        document.getElementsByTagName('body')[0].style.background = "-webkit-linear-gradient(121deg, rgba(173,9,224,1) 0%, rgba(0,212,255,1) 100%)";
       }
       window.onclick = function(event) {
         if (event.target == modal) {
