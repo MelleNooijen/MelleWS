@@ -1,3 +1,8 @@
+body{
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--Back);
+}
+
 a.dir {
   color: #009688;
   text-decoration: none;
@@ -101,4 +106,19 @@ tr:nth-child(even) {
   cursor: pointer;
   box-shadow:  inset 18px 18px 38px #d5d5d5,
   inset -18px -18px 38px #ebebeb;
+}
+.ersc-container{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.inset-pre{
+  border-radius: 22px;
+  box-shadow: inset 18px 18px 54px #c7c7c7,
+              inset -18px -18px 54px #f9f9f9;
+  padding: 2rem
 }

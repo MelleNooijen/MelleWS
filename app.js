@@ -394,7 +394,6 @@ app.get('/simulate-view', function(req, res){
       var viewArray = originalObj.views;
       viewArray.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
       var regFile = {count:newCount,views:viewArray};
-      console.log(regFile);
       // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
       var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
       connection.query(query, function(err, data){
@@ -445,7 +444,6 @@ app.get('/pubdir/*', function(req, res, next) {
   else{
     isHomeDir = false;
   }
-  console.log(dir);
   var folder = './public/direct/' + dir;
   fs.readdir(folder, options, (err, files) => {
     var fileArray = [];
@@ -508,7 +506,6 @@ app.get('/pubdir/*', function(req, res, next) {
         else {
           var icon = "default";
         }
-        console.log(icon);
         var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
@@ -700,14 +697,15 @@ app.post('/profilesettings', function(req, res){
         if(err){
           throw err;
         }
-        console.log(req.session.user.rgb);
         req.session.user.rgb = rgbString;
         res.redirect('/profile');
       });
     }
   }
 });
-
+app.get('/dev/testsuccess', function(req, res){
+  res.render("success", { req: req, sucString: "Nothing was actually done, this is just a test render of the success page.", sucUrl: "https://www.google.com/" }); // render success
+});
 /* 
   API handlers
 */

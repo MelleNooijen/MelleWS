@@ -2,19 +2,19 @@
     <title>MelleWS (success)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+    <link rel='stylesheet' href='/stylesheets/style.css' />
     <%- include('bar', {req: req, barCol: "139,195,74.black"}); %>
-    <div class="w3-container w3-display-middle">
+    <div class="ersc-container">
       <h1>Success!</h1>
-      <h3>Action completed successfully .</h3>
+      <h3>Action completed successfully.</h3>
       <p>The applet's output can be found below.</p>
       <% if (sucString) { %>
-        <p style='font-family: "Lucida Console", Monaco, monospace'><%= sucString %></p>
+        <pre class="inset-pre"><%= sucString %></pre>
       <% } else {%>
-        <p style='font-family: "Lucida Console", Monaco, monospace'>No error defined by applet.</p>
+        <pre class="inset-pre">No success defined by applet.</pre>
       <% } %>
       <% if (sucUrl) { %>
-        <button onclick="copyTC('<%= sucUrl %>')" class="w3-button w3-teal">Copy URL</button>
+        <button onclick="copyTC('<%= sucUrl %>')" class="main_btn">Copy URL</button>
       <% } %>
     </div>
     <script>
