@@ -88,7 +88,6 @@ passport.use('local', new LocalStrategy({
     var salt = secrets.pass_salt;
     connection.query("select * from users where username = ?", [username], function(err, rows){
     console.log(err);
-    console.log("ROWS BELOW");
     if (err) return done(null, false, req.flash('message', "An internal error occurred."));
     if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
     salt = salt+''+password;
@@ -210,7 +209,6 @@ app.post('/upl', async function(req, res){
                 return;
               }
               fs.rename(oldpath, newpath, function (err) {
-                console.log(newpath);
                 if (err){
                   reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
                   throw err;
@@ -251,7 +249,6 @@ app.post('/createuid', async function(req, res){ // legacy
     reportSuccess(res, req, usernameStr + ", your user ID is " + usID + ".\nYou can now log in.")
     var userObject = {name:req.body.usnm, email:req.body.mailad, pro:false};
     keyv.set(usIDstr, userObject);
-    console.log(userObject);
     keyvUsNms.set(usernameStr, true);
     return;
   }
@@ -328,7 +325,6 @@ app.get('/upload/*', async function(req, res){
       return;
     }
     else {
-      console.log(data);
       fileContent = data;
     }
     console.log(fileContent);
@@ -342,7 +338,6 @@ app.get('/upload/*', async function(req, res){
         if(err){
           throw err;
         }
-        console.log(data);
         if(!data[0]){
           console.log("File has not been viewed yet.");
           var regFile = {count:1,views:[{name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}]}
@@ -355,13 +350,11 @@ app.get('/upload/*', async function(req, res){
         }
         else{
           var originalObj = JSON.parse(data[0].views);
-          console.log(originalObj);
           var newCount = originalObj.count + 1;
           //console.log(originalObj.views.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}));
           var viewArray = originalObj.views;
           viewArray.push({name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
           var regFile = {count:newCount,views:viewArray};
-          console.log(regFile);
           // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
           var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
           connection.query(query, function(err, data){
@@ -421,7 +414,6 @@ app.get('/user-upload/*', async function(req, res){
     if(err){
       reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
     }
-    console.log(fileContent);
     if (fileContent == "none."){
       res.render("interr", { req: req, errString: "The requested file does not exist." });
     }
@@ -454,9 +446,7 @@ app.get('/pubdir/*', function(req, res, next) {
     isHomeDir = false;
   }
   console.log(dir);
-  console.log(isHomeDir);
   var folder = './public/direct/' + dir;
-  console.log(folder);
   fs.readdir(folder, options, (err, files) => {
     var fileArray = [];
     if(!files){
@@ -626,7 +616,6 @@ app.get('/mydir/*', async function(req, res, next) {
         else {
           var icon = "default";
         }
-        console.log(icon);
         var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
@@ -667,7 +656,6 @@ app.get('/editmydir', isAuthenticated, function(req, res){
   res.render('diredit', { req: req });
 });
 app.post('/editmydir/*', isAuthenticated, function(req, res){
-  console.log(req);
   var action = req.url.replace("/editmydir/","");
   if(action == "newfile"){
     var filenameToCreate = req.body.nfname.replace(/ /g, "_");
@@ -708,7 +696,6 @@ app.post('/profilesettings', function(req, res){
         } : null;
       }
       var rgbString = hexToRgb(req.body.color).r + "," + hexToRgb(req.body.color).g + "," + hexToRgb(req.body.color).b;
-      console.log(rgbString);
       connection.query("UPDATE `users` SET `rgb` = '" + rgbString + "' WHERE `users`.`username` = '" + req.session.user.username + "'", function(err, data){
         if(err){
           throw err;
