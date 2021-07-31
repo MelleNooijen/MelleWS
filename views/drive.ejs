@@ -12,6 +12,11 @@
     <br/>
     <br/>
     <p class="welcome_msg">Welcome to MWSDrive, a free storage applet with a maximum upload size of 100 MB.</p>
+    <% if(typeof(error) != "undefined"){ %>
+    <div class="error-div">
+      <pre class="inset-pre red-pre"><%= error %></pre>
+    </div>
+    <% } %>
     <div class="card_wrapper" style="display: inline-block;">
         <div class="upload_container">
           <h2 class="upload">Upload</h2>

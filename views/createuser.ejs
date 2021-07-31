@@ -19,7 +19,9 @@
         <h1 class="register_text">Register</h1>
         <p class="register_info">Welcome to MelleWS. Here, you can register your account..</br>With your account, you can access your Drive, UserPages and more.</p>
         <% if(message){ %>
-          <p style="color:red"><%= message %></p>
+          <div class="error-div">
+            <pre class="inset-pre red-pre"><%= message %></pre>
+          </div>
         <% } %>
         <div class="form_wrapper">
           <form class="form" action="/register" method="POST">

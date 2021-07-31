@@ -165,25 +165,25 @@ app.post('/upl', async function(req, res){
   form.uploadDir = "./public/direct/";
   form.parse(req, async function (err, fields, files) {
       if (!req.isAuthenticated()) {
-        reportErr(res, req, "You are not logged in. Please log in.");
+        res.render("drive", {req: req, error: "You are not logged in. Please log in."});
       }
       else {
         var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
         //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
         filenameToUpload = encodeURIComponent(filenameToUpload);
         if (false) {
-          reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+          res.render("drive", {req: req, error: "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character."});
         }
         else {
           if (filenameToUpload.startsWith("index") && fields.dispmetd != "dm_personal"){
-            reportErr(res, req, "Encountered an error! (04: The public directory isn't a web hosting service, use UserPages!");
+            res.render("drive", {req: req, error: "Encountered an error! (04: The public directory isn't a web hosting service, use UserPages!"});
             return;
           }
           else {
             var flSz = files.filetoupload.size / 1000000;
             flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
             if (flSz > 100) {
-              reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
+              res.render("drive", {req: req, error: "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)"})
             }
             else {
               var safeName = filenameToUpload;
@@ -205,19 +205,19 @@ app.post('/upl', async function(req, res){
                 var fuType = "upload";
               }
               if (fs.existsSync(path.normalize(path.join(__dirname, "public/direct/") + safeName)) && fields.dispmetd != "dm_personal"){
-                reportErr(res, req, "The file you are trying to upload already exists. Please rename the file.");
+                res.render("drive", {req: req, error: "The file you are trying to upload already exists. Please rename the file."});
                 return;
               }
               fs.rename(oldpath, newpath, function (err) {
                 if (err){
-                  reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                  res.render("drive", {req: req, error: "An error occurred creating the metadata file for the uploaded file."});
                   throw err;
                 }
                 var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
                 var jsonFileName = "./public/json/" + safeName + ".json";
                 fs.writeFile(jsonFileName, fileObj, function(err){
                   if (err) {
-                    reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                    res.render("drive", {req: req, error: "An error occurred creating the metadata file for the uploaded file."});
                     return;
                   }
                 });

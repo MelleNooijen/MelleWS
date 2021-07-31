@@ -13,14 +13,16 @@
     <br/>
     <br/>
     <div class="login_wrapper">
+        <% if(message != ""){ %>
+          <div class="error-div" style="margin-top:24px;">
+            <pre class="inset-pre red-pre"><%= message %></pre>
+          </div>
+        <% } %>
         <h1 class="login_header">Login</h1>
         <div class="login_card">
             <% if (req.isAuthenticated()) { %>
                 <p>You are logged in as <%= req.session.user.username %>. Click to <a href="/forget">log out</a>.</p>
             <% } else { %>
-              <% if(message){ %>
-                <p style="color:red"><%= message %></p>
-              <% } %>
               <form class="login_form" method="post" action="/login">
                 <input class="input text_input" type="text" name="username" id="username" placeholder="Username"/>
                 <input class="input text_input" type="password" name="password" id="password" placeholder="Password"/>

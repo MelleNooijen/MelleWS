@@ -122,3 +122,16 @@ tr:nth-child(even) {
               inset -18px -18px 54px #f9f9f9;
   padding: 2rem
 }
+.red-pre{
+  background-color: rgb(244,67,54);
+  box-shadow: inset 12px 12px 54px #972a21,
+              inset -12px -12px 54px #ff5c4b;
+  color: white;
+}
+.error-div{
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  display: flex;
+  text-align: center;
+}
