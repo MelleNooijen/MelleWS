@@ -369,6 +369,9 @@ app.get('/upload/*', async function(req, res){
     }
   });
 });
+app.get('/dev/test-upload-error', function(req, res){
+  res.render('drive', { req: req, error: "Testing error!" });
+});
 app.get('/simulate-view', function(req, res){
   var filetosim = "test3.file";
   connection.query("SELECT * FROM `fileviews` WHERE `file` = '" + filetosim + "' ", function(err, data){

@@ -1,7 +1,3 @@
-.main_container{
-  
-}
-
 .register_text{
   display: flex;
   justify-content: center;
@@ -24,8 +20,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding 1em;
-
+  padding: 1em;
 }
 
 .form{
@@ -34,9 +29,8 @@
   flex-direction: column;
   background: var(--Back);
   padding: 3em;
-  border-radius: 25px;
+  border-radius: 90px;
   box-shadow:  20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
-
 }
 
 input{
@@ -55,4 +49,16 @@ input:focus{
   border-radius: 15px;
   padding: 5px;
   transition: 0.4s all ease-in;
+}
+.inset_input{
+  -webkit-appearance: none;
+  border: transparent;
+  border-radius: 90px;
+  background-color: var(--Back);
+  box-shadow: inset 6px 6px 18px #bcbcbc,
+  inset -6px -6px 18px #ffffff;
+  padding: 20px;
+}
+.inset_input:focus{
+  border: transparent;
 }
