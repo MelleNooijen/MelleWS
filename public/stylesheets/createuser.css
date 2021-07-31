@@ -1,0 +1,58 @@
+.main_container{
+  
+}
+
+.register_text{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  left: 50%;
+  transform: translate(0, -50%);
+}
+
+.register_info{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  left: 50%;
+  transform: translate(0, -50%);
+}
+
+.form_wrapper{
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding 1em;
+
+}
+
+.form{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background: var(--Back);
+  padding: 3em;
+  border-radius: 25px;
+  box-shadow:  20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
+
+}
+
+input{
+  margin: 1em;
+}
+
+input:focus{
+  outline: none;
+  border: 2px solid var(--Prim);
+  box-shadow: inset 5px 5px 20px #bebebe, inset -5px -5px 20px #ffffff
+}
+
+.input{
+  background: transparent;
+  border: 2px solid var(--btn);
+  border-radius: 15px;
+  padding: 5px;
+  transition: 0.4s all ease-in;
+}

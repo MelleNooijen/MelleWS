@@ -3,29 +3,30 @@
   <head>
     <title>MelleWS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="./stylesheets/createuser.css">
+    <link rel="stylesheet" href="./stylesheets/style.css">
   </head>
   <body>
     <%- include('bar', {req: req}); %>
     <br/>
     <br/>
     <br/>
-    <div class="w3-container w3-center">
+    <div class="main_container">
       <% if (req.isAuthenticated()) { %>
         <p>You already have an account.</p>
       <% } else { %>
-        <h1>Register</h1>
-        <p>Welcome to MelleWS. Here, you can register your account..</br>With your account, you can access your Drive, UserPages and more.</p>
+        <h1 class="register_text">Register</h1>
+        <p class="register_info">Welcome to MelleWS. Here, you can register your account..</br>With your account, you can access your Drive, UserPages and more.</p>
         <% if(message){ %>
           <p style="color:red"><%= message %></p>
         <% } %>
-        <div class="w3-bar">
-          <form class="w3-container w3-padding" action="/register" method="POST">
-            <input class="w3-input" type="text" name="username" id="username" placeholder="Username" required>
-            <input class="w3-input" type="email" name="email" id="email" placeholder="E-mail" required>
-            <input class="w3-input" type="password" id="password" name="password" placeholder="Password" required />
-            <input class="w3-input" type="password" id="rePassword" name="rePassword" placeholder="Re-enter password" required />
-            <input class="w3-button w3-teal w3-margin-top" type="submit" name="sbmt">
+        <div class="form_wrapper">
+          <form class="form" action="/register" method="POST">
+            <input class="input" type="text" name="username" id="username" placeholder="Username" required>
+            <input class="input" type="email" name="email" id="email" placeholder="E-mail" required>
+            <input class="input" type="password" id="password" name="password" placeholder="Password" required />
+            <input class="input" type="password" id="rePassword" name="rePassword" placeholder="Re-enter password" required />
+            <input class="main_btn" type="submit" name="sbmt">
           </form>
         </div>
       <% } %>
