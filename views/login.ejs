@@ -12,14 +12,9 @@
     <br/>
     <br/>
     <br/>
-    <div class="login_wrapper">
-        <% if(message != ""){ %>
-          <div class="error-div" style="margin-top:24px;">
-            <pre class="inset-pre red-pre"><%= message %></pre>
-          </div>
-        <% } %>
-        <h1 class="login_header">Login</h1>
-        <div class="login_card">
+
+      <h1 class="login_header">Login</h1>
+      <div class="login_card">
             <% if (req.isAuthenticated()) { %>
                 <p>You are logged in as <%= req.session.user.username %>. Click to <a href="/forget">log out</a>.</p>
             <% } else { %>
@@ -29,7 +24,16 @@
                 <input class="input main_btn" type="submit" value="Log in"/>
               </form>
             <% } %>
-        </div>
       </div>
+
+
+      <% if(message != ""){ %>
+        <div class="backdrop"></div>
+        <button class="exit_btn">&times;</button>
+        <div class="error-div" style="margin-top:24px;">
+          <pre class="inset-pre red-pre"><%= message %></pre>
+        </div>
+      <% } %>
+
   </body>
 </html>

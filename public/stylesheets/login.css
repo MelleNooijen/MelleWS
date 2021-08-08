@@ -46,3 +46,25 @@ body{
 .text_input:focus{
     border: transparent;
 }
+.backdrop{
+  position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(36, 33, 33, 0.693);
+    z-index: 1;
+}
+
+.exit_btn{
+
+    background: transparent;
+    border: transparent;
+    font-size: 45px;
+    font-weight: 250;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    z-index: 2;
+}

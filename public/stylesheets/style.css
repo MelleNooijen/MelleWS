@@ -92,10 +92,8 @@ tr:nth-child(even) {
   padding: 1em;
   padding-top: 0.5em;
   padding-bottom: 0.5em;
-  transition: all 0.4s ease-out;
   /* background: linear-gradient(145deg, #cacaca, #f0f0f0); */
-  box-shadow:  18px 18px 38px #d5d5d5,
-               -18px -18px 38px #ebebeb;
+  transition: all 0.4s ease-out;
 }
 
 .main_btn:hover{
@@ -117,10 +115,16 @@ tr:nth-child(even) {
   flex-direction: column;
 }
 .inset-pre{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
   border-radius: 22px;
   box-shadow: inset 18px 18px 54px #c7c7c7,
               inset -18px -18px 54px #f9f9f9;
-  padding: 2rem
+  padding: 2rem;
+  width: clamp(200px, 100%, 600px);
 }
 .red-pre{
   background-color: rgb(244,67,54);
@@ -129,9 +133,10 @@ tr:nth-child(even) {
   color: white;
 }
 .error-div{
-  position: absolute;
+   position: absolute;
   left: 50%;
-  transform: translate(-50%, 0);
-  display: flex;
+  top: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
+  z-index: 2;
 }
