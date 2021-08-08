@@ -13,9 +13,19 @@
     <br/>
     <p class="welcome_msg">Welcome to MWSDrive, a free storage applet with a maximum upload size of 100 MB.</p>
     <% if(typeof(error) != "undefined"){ %>
-    <div class="error-div">
-      <pre class="inset-pre red-pre"><%= error %></pre>
-    </div>
+      <div id="error-container">
+        <div class="err-backdrop" id="backdrop"></div>
+        <div class="error-div" style="margin-top:24px;">
+          <pre class="inset-pre red-pre"><%= error %></pre>
+        </div>
+      </div>
+      <script>
+        var bddiv = document.getElementById('backdrop');
+        //bddiv.style.cursor = 'pointer';
+        bddiv.onclick = function hideError(){
+          document.getElementById('error-container').style.display = "none";
+        }
+      </script>
     <% } %>
     <div class="card_wrapper" style="display: inline-block;">
         <div class="upload_container">

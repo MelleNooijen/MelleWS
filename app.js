@@ -678,13 +678,77 @@ app.post('/editmydir/*', isAuthenticated, function(req, res){
 app.get('/profile', isAuthenticated, function(req, res){
   res.render('profile', { req: req, title: "Your Profile", user: req.session.user });
 });
+app.post('/up-edit', function(req, res){
+  if(req.body.function == "create"){
+    connection.query("INSERT INTO `userpage`(`name`, `data`) VALUES ('" + req.session.user.username + "','{}')");
+    res.end("Created UserPage for " + req.session.user.username + ".");
+  }
+  else{
+    reportErr(res, req, "Unknown action " + action);
+    return;
+  }
+});
+app.post('/clreq', function(req, res){
+  console.log(req);
+  res.end("Logged request to console.");
+});
+app.get('/user/*', function(req, res, next){
+  var userPage = req.originalUrl.split('/')[2];
+  if(req.originalUrl.split('/')[3]){
+    next();
+  }
+  var upPath = path.normalize("./public/user/" + userPage + "/");
+  if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
+    next;
+  }
+  console.log(req.originalUrl.split('/')[2]);
+  connection.query("SELECT * FROM `userpage` WHERE `name` = '" + userPage + "'", function(err, data){
+    if(err){
+      console.log(err);
+      reportErr(res, req, err);
+      return;
+    }
+    if(data.length != 0){
+      console.log(data[0]);
+      res.render("userpage", { req: req, name: data[0].name, data: JSON.parse(data[0].data) });
+    }
+    else{
+      reportErr(res, req, "This user does not exist or has UserPages disabled.")
+    }
+  });
+});
+app.get('/api/userpage/*', function(req, res){
+  var upPath = path.normalize("./public/user/" + req.originalUrl.split('/')[3] + "/");
+  if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
+    res.status(201).end();
+    return;
+  }
+  console.log(req.originalUrl.split('/'));
+  if(!(req.originalUrl.split('/')[3].match(/^[a-zA-Z0-9]+$/g))){
+    res.status(500).end();
+  }
+  else{
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + req.originalUrl.split('/')[3] + "'", function(err, data){
+      if(err){
+        console.log(err);
+        res.status(500).end();
+      }
+      if(data.length != 0){
+        res.status(200).end();
+      }
+      else{
+        res.status(404).end();
+      }
+    });
+  }
+});
 app.post('/profilesettings', function(req, res){
   if(!req.isAuthenticated()){
-    reportErr("Please log in to set your favourite colour!");
+    reportErr(res, req, "Please log in to set your favourite colour!");
   }
   else {
     if(!req.body.color){
-      reportErr('Please set a colour from the Profile page, not an out-of-nowhere POST request without the proper syntax!')
+      reportErr(res, req, 'Please set a colour from the Profile page, not an out-of-nowhere POST request without the proper syntax!')
     }
     else {
       function hexToRgb(hex) {
@@ -716,7 +780,7 @@ app.get("/api/ping", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.write(apiHeader);
   res.write("\n  You successfully pinged the MelleWS API!\n");
-  res.end("\n -- end of response -- " + new Date());
+  res.end("\n -- end of response -- " + new Date() + "\n");
 });
 app.get("/api/reqdetails", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -724,53 +788,54 @@ app.get("/api/reqdetails", function(req, res){
   res.write("\n  Details found in your HTTP request can be found below.\n");
   res.write("\n  User Agent: " + req.rawHeaders[3] + "\n")
   console.log(req.rawHeaders[3]);
-  res.end("\n -- end of response -- " + new Date());
+  res.end("\n -- end of response -- " + new Date() + "\n");
 });
 app.post('/api/upl', async function(req, res){
-  var form = new formidable.IncomingForm();
-  // path.join(__dirname, "public\\upload\\")
-  form.uploadDir = "./public/upload/";
-  form.parse(req, async function (err, fields, files) {
-    if (fields.usrID) {
-      const getResult = await keyv.get(fields.usrID);
-      if (getResult === void(0)) {
-        reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
-      }
-      else {
-        var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
-        console.log(filenameToUpload);
-        var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
-        if (filenameToUpload.match(invalidCharsT)) {
-          reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
-        }
-        else {
-          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
-            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
-          }
-          else {
-            var flSz = files.filetoupload.size / 1000000;
-            flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
-            if (flSz > 100) {
-              reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
-            }
-            else {
-              var safeName = filenameToUpload;
-              stringEscape(safeName);
-              var oldpath = files.filetoupload.path;
-              var newpath = path.join(__dirname, "public\\upload\\") + safeName;
-              fs.rename(oldpath, newpath, function (err) {
-                if (err) throw err;
-                reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
-              });
-            }
-          }
-        }
-      }
-    }
-    else {
-      reportErr(res, req, "No User ID (code 01).");
-    }
-  });
+  reportApiErr(res, req, "API uploading is currently unavailable.")
+  // var form = new formidable.IncomingForm();
+  // // path.join(__dirname, "public\\upload\\")
+  // form.uploadDir = "./public/upload/";
+  // form.parse(req, async function (err, fields, files) {
+  //   if (fields.usrID) {
+  //     const getResult = await keyv.get(fields.usrID);
+  //     if (getResult === void(0)) {
+  //       reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
+  //     }
+  //     else {
+  //       var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
+  //       console.log(filenameToUpload);
+  //       var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+  //       if (filenameToUpload.match(invalidCharsT)) {
+  //         reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+  //       }
+  //       else {
+  //         if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
+  //           reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
+  //         }
+  //         else {
+  //           var flSz = files.filetoupload.size / 1000000;
+  //           flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
+  //           if (flSz > 100) {
+  //             reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
+  //           }
+  //           else {
+  //             var safeName = filenameToUpload;
+  //             stringEscape(safeName);
+  //             var oldpath = files.filetoupload.path;
+  //             var newpath = path.join(__dirname, "public\\upload\\") + safeName;
+  //             fs.rename(oldpath, newpath, function (err) {
+  //               if (err) throw err;
+  //               reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   else {
+  //     reportErr(res, req, "No User ID (code 01).");
+  //   }
+  // });
 });
 // End of API handlers
 
@@ -801,7 +866,7 @@ app.use(function(err, req, res, next) {
         res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
         res.write("\n  An error occurred. Details can be found below.\n");
         res.write("\n  HTTP Status: " + err.status + "\n  Error message: " + err.message);
-        res.end("\n -- end of response -- " + new Date());
+        res.end("\n -- end of response -- " + new Date() + "\n");
       }
       else {
         res.render('error', { req: req });
@@ -859,9 +924,11 @@ function isAuthenticated(req, res, next) {
     return next();
   res.redirect('/login');
 }
-
-app.listen(3000, () => {
-  console.log("yooo");
-})
+if(process.argv[1].includes('app.js')){
+  console.log("\033[33m[Warning] \033[93mMelleWS is starting in Yooo mode. This is only to be used for debugging and development purposes and not supported for production environments. Features such as logging and SSL are not available in this mode. For more information, see README.md.\033[0m");
+  app.listen(3000, () => {
+    console.log("Started in Yooo mode.");
+  })
+}
 
 module.exports = app;

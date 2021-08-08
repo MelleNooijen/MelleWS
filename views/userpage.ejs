@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+  </head>
+  <body>
+    <%- include('bar', {req: req}); %>
+    <div>
+        <h1><%= name %></h1>
+        <p>UserPages are under construction. Meanwhile, stringified JSON data of the page can be found below.</p>
+        <pre class="inset-pre"><%= JSON.stringify(data, null, 2) %></pre>
+    </div>
+  </body>
+</html>

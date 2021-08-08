@@ -115,18 +115,17 @@ tr:nth-child(even) {
   flex-direction: column;
 }
 .inset-pre{
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-
   border-radius: 22px;
   box-shadow: inset 18px 18px 54px #c7c7c7,
               inset -18px -18px 54px #f9f9f9;
   padding: 2rem;
-  width: clamp(200px, 100%, 600px);
 }
 .red-pre{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(200px, 100%, 600px);
   background-color: rgb(244,67,54);
   box-shadow: inset 12px 12px 54px #972a21,
               inset -12px -12px 54px #ff5c4b;
@@ -139,4 +138,17 @@ tr:nth-child(even) {
   transform: translate(-50%, -50%);
   text-align: center;
   z-index: 2;
+}
+.err-backdrop{
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(36, 33, 33, 0.693);
+  z-index: 1;
 }

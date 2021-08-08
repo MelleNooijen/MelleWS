@@ -4,6 +4,7 @@
     <title><%= title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  </head>
+    <link rel="stylesheet" href="/stylesheets/profile.css">
   <body>
     <%- include('bar', {req: req}); %>
     <br/>
@@ -27,6 +28,10 @@
             <td class="tg-0pky"><%= user.email %></td>
           </tr>
           <tr>
+            <td class="tg-0pky">UserPage</td>
+            <td class="tg-0pky"><input type="checkbox" id="up-box" onchange="createUserPage()"><p id="upstatus">Loading status...</p></td>
+          </tr>
+          <tr>
             <td class="tg-0pky">Colour Preference</td>
             <td class="tg-0pky w3-center">
               <form action="/profilesettings" method="POST">
@@ -42,6 +47,42 @@
           </tr>
         </tbody>
       </table>
+      <script>
+        var url = '/api/userpage/<%= user.username %>';
+        console.log("running!");
+        var http = new XMLHttpRequest();
+        http.open('GET', url, false);
+        http.send();
+        var upbox = document.getElementById('up-box');
+        var uppar = document.getElementById('upstatus');
+        console.log(http);
+        if (http.status != 404){
+          upbox.setAttribute("checked", "checked");
+          upbox.setAttribute("disabled","disabled");
+          if(http.status == 201){
+            uppar.innerText = "Custom";
+          }
+          else {
+            uppar.innerText = "Profile";
+          }
+        } else if(http.status == 500) { 
+          upbox.setAttribute("disabled","disabled")
+          uppar.innerText = "Error";
+          alert("An error occurred checking the current status of your UserPage. Please try again later.");
+        } else {
+          upbox.removeAttribute("checked");
+          upbox.removeAttribute("disabled");
+          uppar.innerText = "";
+        }
+        function createUserPage(){
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "create"}));
+          console.log(c_http);
+          location.reload();
+        }
+      </script>
     </div>
   </body>
 </html>

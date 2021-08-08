@@ -25,15 +25,20 @@
               </form>
             <% } %>
       </div>
-
-
       <% if(message != ""){ %>
-        <div class="backdrop"></div>
-        <button class="exit_btn">&times;</button>
-        <div class="error-div" style="margin-top:24px;">
-          <pre class="inset-pre red-pre"><%= message %></pre>
+        <div id="error-container">
+          <div class="err-backdrop" id="backdrop"></div>
+          <div class="error-div" style="margin-top:24px;">
+            <pre class="inset-pre red-pre"><%= message %></pre>
+          </div>
         </div>
+        <script>
+          var bddiv = document.getElementById('backdrop');
+          //bddiv.style.cursor = 'pointer';
+          bddiv.onclick = function hideError(){
+            document.getElementById('error-container').style.display = "none";
+          }
+        </script>
       <% } %>
-
   </body>
 </html>
