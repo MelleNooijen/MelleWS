@@ -32,6 +32,16 @@
             <td class="tg-0pky"><input type="checkbox" id="up-box" onchange="createUserPage()"><p id="upstatus">Loading status...</p></td>
           </tr>
           <tr>
+            <td class="tg-0pky">Private Files</td>
+            <td class="tg-0pky">
+              <select id="acs-sel" onchange="setAccess(this.value)" disabled>
+                <option value="private">Only for myself</option>
+                <option value="partial" disabled>Only for myself, except specific files</option>
+                <option value="public">Fully accessible</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
             <td class="tg-0pky">Colour Preference</td>
             <td class="tg-0pky w3-center">
               <form action="/profilesettings" method="POST">
@@ -82,6 +92,45 @@
           console.log(c_http);
           location.reload();
         }
+        function getProfilePicture(){
+          var p_http = new XMLHttpRequest();
+          p_http.open('GET', "/images/user/<%= user.username %>.png", false);
+          p_http.send();
+        }
+        function setAccess(value){
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "set-private-access","access-type":value}));
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred saving your settings, please try again later.");
+          }
+          else {
+            alert('Successfully set new value\n -- TODO: Add proper success messages')
+          }
+        }
+        function getPData(){
+          var c_http = new XMLHttpRequest();
+          c_http.open('GET', "/api/get-profile-data", false);
+          c_http.send();
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred getting your profile data. Some settings may not be available.");
+          }
+          var result = JSON.parse(c_http.response);
+          console.log(result);
+          if(result['access-type'] == "public"){
+            document.getElementById('acs-sel').removeAttribute('disabled');
+            document.getElementById('acs-sel').value = 'public';
+          }
+          else {
+            document.getElementById('acs-sel').removeAttribute('disabled');
+            document.getElementById('acs-sel').value = 'private';
+          }
+        }
+        getPData();
+        getProfilePicture();
       </script>
     </div>
   </body>

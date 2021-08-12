@@ -56,7 +56,6 @@ app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 // init login system
 var connection = mysql.createConnection({
   host: secrets.sql_host,
@@ -543,6 +542,9 @@ app.get('/mydir/*', async function(req, res, next) {
     return;
   }
   var usrName = req.session.user.username;
+  if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
+    fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
+  }
   var dir = req.url.replace('/mydir/','');
   if (!dir.endsWith("/")){
     dir = dir + "/";
@@ -666,6 +668,11 @@ app.post('/editmydir/*', isAuthenticated, function(req, res){
     console.log("going to create file " + safeName + " with content " + req.body.nfcontent)
     fs.writeFileSync("./public/user/" + req.session.user.username + "/" + safeName,req.body.nfcontent);
   } else if(action == "newdir") {
+    var filenameToCreate = req.body.ndname.replace(/ /g, "_");
+    //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+    filenameToCreate = encodeURIComponent(filenameToCreate);
+    var safeName = filenameToCreate;
+    stringEscape(safeName);
     console.log("going to create directory " + req.body.ndname + ".")
     
     fs.mkdirSync("./public/user/" + req.session.user.username + "/" + safeName);
@@ -678,44 +685,86 @@ app.post('/editmydir/*', isAuthenticated, function(req, res){
 app.get('/profile', isAuthenticated, function(req, res){
   res.render('profile', { req: req, title: "Your Profile", user: req.session.user });
 });
-app.post('/up-edit', function(req, res){
+app.post('/up-edit', isAuthenticated, function(req, res){
   if(req.body.function == "create"){
     connection.query("INSERT INTO `userpage`(`name`, `data`) VALUES ('" + req.session.user.username + "','{}')");
     res.end("Created UserPage for " + req.session.user.username + ".");
+  }
+  else if(req.body.function == "set-private-access"){
+    if(typeof(req.body['access-type']) == "undefined"){
+      res.status(500).end();
+      return;
+    }
+    if(!(req.body['access-type'].match(/^[a-zA-Z0-9]+$/g))){
+      res.status(500).end();
+      return;
+    }
+    console.log("trig " + req.body['access-type']);
+    connection.query("UPDATE `access` SET `data`='{\"type\": \"" + req.body['access-type'] + "\"}' WHERE `user` = '" + req.session.user.username + "' ")
+    res.status(200).end();
   }
   else{
     reportErr(res, req, "Unknown action " + action);
     return;
   }
 });
-app.post('/clreq', function(req, res){
+app.post('/dev/clreq', function(req, res){
   console.log(req);
   res.end("Logged request to console.");
 });
 app.get('/user/*', function(req, res, next){
+  console.log("I got a trig!");
   var userPage = req.originalUrl.split('/')[2];
+  console.log(req.originalUrl.split('/'));
   if(req.originalUrl.split('/')[3]){
-    next();
-  }
-  var upPath = path.normalize("./public/user/" + userPage + "/");
-  if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
-    next;
-  }
-  console.log(req.originalUrl.split('/')[2]);
-  connection.query("SELECT * FROM `userpage` WHERE `name` = '" + userPage + "'", function(err, data){
-    if(err){
-      console.log(err);
-      reportErr(res, req, err);
-      return;
-    }
-    if(data.length != 0){
-      console.log(data[0]);
-      res.render("userpage", { req: req, name: data[0].name, data: JSON.parse(data[0].data) });
+    if(fs.existsSync(path.normalize("./public/" + req.originalUrl))){
+      if(!(req.isAuthenticated())){
+        reportErr(res, req, "You need to be logged in to see private files.");
+        return;
+      }
+      connection.query("SELECT * FROM `access` WHERE `user` = '" + userPage + "'", function(err, data){
+        if(userPage == req.session.user.username || JSON.parse(data[0].data).type == "public"){
+          //console.log("I should download");
+          //console.log(path.normalize("./public/" + req.originalUrl));
+          //res.download(path.normalize("./public/" + req.originalUrl));
+          //res.end();
+          next();
+        }
+        else{
+          reportErr(res, req, "You do not have access to this file.");
+          return;
+        }
+      });
     }
     else{
-      reportErr(res, req, "This user does not exist or has UserPages disabled.")
+      next();
     }
-  });
+  }
+  else {
+    var upPath = path.normalize("./public/user/" + userPage + "/");
+    if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
+      next();
+    }
+    console.log(req.originalUrl.split('/')[2]);
+    console.log("I _should_ get a trig");
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + userPage + "'", function(err, data){
+      if(err){
+        console.log(err);
+        reportErr(res, req, err);
+        return;
+      }
+      if(data.length != 0){
+        console.log(data[0]);
+        console.log("TRIGGERED");
+        var customImage = fs.existsSync(path.normalize(`./public/images/user/${data[0].name}.png`));
+        res.render("userpage", { req: req, name: data[0].name, data: JSON.parse(data[0].data), cim: customImage });
+      }
+      else{
+        reportErr(res, req, "This user does not exist or has UserPages disabled.")
+        return;
+      }
+    });
+  }
 });
 app.get('/api/userpage/*', function(req, res){
   var upPath = path.normalize("./public/user/" + req.originalUrl.split('/')[3] + "/");
@@ -739,6 +788,23 @@ app.get('/api/userpage/*', function(req, res){
       else{
         res.status(404).end();
       }
+    });
+  }
+});
+app.get('/api/get-profile-data', function(req, res){
+  if(!(req.isAuthenticated())){
+    res.status(403).end();
+  }
+  else{
+    connection.query("SELECT * FROM `access` WHERE `user` = '" + req.session.user.username + "'", function(err, data){
+      if(err){
+        console.log(err);
+        res.status(500).end("Database error");
+      }
+      console.log(data);
+      var acs_type = (data[0] ? JSON.parse(data[0].data).type : "unknown");
+      res.json({"access-type":acs_type});
+      res.end();
     });
   }
 });
@@ -786,8 +852,11 @@ app.get("/api/reqdetails", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
   res.write("\n  Details found in your HTTP request can be found below.\n");
-  res.write("\n  User Agent: " + req.rawHeaders[3] + "\n")
-  console.log(req.rawHeaders[3]);
+  res.write("\n  User Agent: " + req.rawHeaders[3] + "\n");
+  // -- For some reason this code is triggering HTTP overload errors, even just logging the request JSON.
+  //console.log(JSON.stringify(req));
+  //res.write("\n  Raw JSON: " + JSON.stringify(req));
+  //res.write("\n  Full Request JSON: " + JSON.stringify(req, null, 2) + "\n")
   res.end("\n -- end of response -- " + new Date() + "\n");
 });
 app.post('/api/upl', async function(req, res){
@@ -838,6 +907,8 @@ app.post('/api/upl', async function(req, res){
   // });
 });
 // End of API handlers
+// Serve static, but only after checking that the user has access to the files accessed
+app.use(express.static(path.join(__dirname, 'public')));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
