@@ -70,6 +70,11 @@
     cursor: pointer;
     top: 50%;
     transform: translate(0, -50%);
+    transition: all 0.2s ease-in-out;
+}
+.toup:hover{
+    top: 49%;
+    box-shadow: 9px 18px 35px #b8b8b8, -9px -18px 35px #ffffff;
 }
 .textarea {
     border-radius: 20px;

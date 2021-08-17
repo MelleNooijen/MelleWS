@@ -1,3 +1,16 @@
+@keyframes startanim {
+    from {
+      box-shadow:  0px 0px 10px #bebebe,
+      -0px -0px 10px #ffffff;
+      opacity: 0;
+    }
+    to {
+       box-shadow:  20px 20px 60px #bebebe,
+                -20px -20px 60px #ffffff;
+      opacity: 1;
+    }
+}
+
 .register_text{
   display: flex;
   justify-content: center;
@@ -21,6 +34,7 @@
   justify-content: center;
   align-items: center;
   padding: 1em;
+
 }
 
 .form{
@@ -31,6 +45,8 @@
   padding: 3em;
   border-radius: 90px;
   box-shadow:  20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
+  
+  animation: startanim 1.0s;
 }
 
 input{

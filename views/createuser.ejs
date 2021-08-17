@@ -18,11 +18,21 @@
       <% } else { %>
         <h1 class="register_text">Register</h1>
         <p class="register_info">Welcome to MelleWS. Here, you can register your account..</br>With your account, you can access your Drive, UserPages and more.</p>
-        <% if(message){ %>
-          <div class="error-div">
+        <% if(message != ""){ %>
+        <div id="error-container">
+          <div class="err-backdrop" id="backdrop"></div>
+          <div class="error-div" style="margin-top:24px;">
             <pre class="inset-pre red-pre"><%= message %></pre>
           </div>
-        <% } %>
+        </div>
+        <script>
+          var bddiv = document.getElementById('backdrop');
+          //bddiv.style.cursor = 'pointer';
+          bddiv.onclick = function hideError(){
+            document.getElementById('error-container').style.display = "none";
+          }
+        </script>
+      <% } %>
         <div class="form_wrapper">
           <form class="form" action="/register" method="POST">
             <input class="<%= isInset %>" type="text" name="username" id="username" placeholder="Username" required>
