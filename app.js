@@ -167,6 +167,10 @@ app.post('/upl', async function(req, res){
         res.render("drive", {req: req, error: "You are not logged in. Please log in."});
       }
       else {
+        if(typeof(files.filetoupload) == "undefined"){
+          reportErr(res, req, "Invalid request");
+          return;
+        }
         var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
         //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
         filenameToUpload = encodeURIComponent(filenameToUpload);
@@ -192,8 +196,12 @@ app.post('/upl', async function(req, res){
               }
               var oldpath = files.filetoupload.path;
               console.log(fields.dispmetd);
+              console.log(fields.folder);
               if(fields.dispmetd == "dm_personal") {
-                var newpath = path.normalize(path.join(__dirname, "public/user/") + req.session.user.username + "/" + safeName);
+                if(fields.folder.includes(".")){
+                  reportErr("Invalid folder selected");
+                }
+                var newpath = path.normalize(path.join(__dirname, "public/user/") + req.session.user.username + fields.folder + "/" + safeName);
                 var fuType = "user-upload/" + req.session.user.username;
                 if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
                   fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
@@ -212,7 +220,13 @@ app.post('/upl', async function(req, res){
                   res.render("drive", {req: req, error: "An error occurred creating the metadata file for the uploaded file."});
                   throw err;
                 }
-                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
+                if(typeof(fields.folder) == "undefined"){
+                  var folder = "/";
+                }
+                else{
+                  var folder = fields.folder;
+                }
+                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + ', "folder": "' + folder + '"}';
                 var jsonFileName = "./public/json/" + safeName + ".json";
                 fs.writeFile(jsonFileName, fileObj, function(err){
                   if (err) {
@@ -220,8 +234,11 @@ app.post('/upl', async function(req, res){
                     return;
                   }
                 });
+                if(folder == "/"){
+                  folder = "";
+                }
                 var fullUrl = "http://mellemws.my.to/" + fuType + "/" + safeName;
-                reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType + "/" + filenameToUpload + ".", fullUrl);
+                reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType +  "/" + safeName + ".", fullUrl);
                 return;
               });
             }
@@ -324,11 +341,12 @@ app.get('/upload/*', async function(req, res){
       return;
     }
     else {
+      console.log({data});
       fileContent = data;
     }
     console.log(fileContent);
     if (fileContent == "none."){
-      res.render("interr", { req: req, errString: "The requested file does not exist." });
+      reportErr(res, req, "The requested file does not exist." );
     }
     else {
       var parsedFC = JSON.parse(fileContent);
@@ -414,14 +432,16 @@ app.get('/user-upload/*', async function(req, res){
   fs.readFile(jsfn, function(err, data){
     if(err){
       reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
+    } else {
+      fileContent = data;
     }
     if (fileContent == "none."){
-      res.render("interr", { req: req, errString: "The requested file does not exist." });
+      reportErr(res, req, "The requested file does not exist." );
     }
     else {
       var parsedFC = JSON.parse(fileContent);
       console.log(parsedFC);
-      res.render("dlview", { req: req, flobj: parsedFC, private: true});
+      res.render("dlview", { req: req, flobj: parsedFC, private: true, viewData: []});
       return parsedFC;
     }
   });
@@ -708,10 +728,6 @@ app.post('/up-edit', isAuthenticated, function(req, res){
     return;
   }
 });
-app.post('/dev/clreq', function(req, res){
-  console.log(req);
-  res.end("Logged request to console.");
-});
 app.get('/user/*', function(req, res, next){
   console.log("I got a trig!");
   var userPage = req.originalUrl.split('/')[2];
@@ -765,6 +781,21 @@ app.get('/user/*', function(req, res, next){
       }
     });
   }
+});
+app.get('/api/mydir', function(req,res){
+  if(!(req.isAuthenticated())){
+    res.status(403).end();
+    return;
+  };
+  if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
+    fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
+  }
+  var dirlist = fs.readdirSync(path.normalize('./public/user/' + req.session.user.username), { withFileTypes: true });
+  var a = ['/'];
+  var b = dirlist.filter(dirent => dirent.isDirectory()).map(dirent => "/" + dirent.name);
+  var dirArray = a.concat(b);
+  res.json({"files": dirlist, "dirs": dirArray});
+  res.end();
 });
 app.get('/api/userpage/*', function(req, res){
   var upPath = path.normalize("./public/user/" + req.originalUrl.split('/')[3] + "/");
@@ -836,8 +867,17 @@ app.post('/profilesettings', function(req, res){
     }
   }
 });
+app.post('/dev/clreq', function(req, res){
+  console.log(req);
+  res.end("Logged request to console.");
+});
 app.get('/dev/testsuccess', function(req, res){
   res.render("success", { req: req, sucString: "Nothing was actually done, this is just a test render of the success page.", sucUrl: "https://www.google.com/" }); // render success
+});
+app.get('/dev/async-upl', function(req, res){
+  var htmlFile = fs.readFileSync("./dev/async-upl.html", {encoding: "utf-8"});
+  res.send(htmlFile);
+  res.end();
 });
 /* 
   API handlers
@@ -946,7 +986,7 @@ app.use(function(err, req, res, next) {
   }
 });
 function reportErr(res, req, errStr) {
-  res.render("interr", { req: req, errString: errStr }); // render interr
+  res.render("error", { req: req, error: {status: "Applet", message: errStr} });
   return;
 }
 function reportApiErr(res, req, errStr) {

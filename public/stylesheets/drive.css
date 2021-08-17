@@ -54,8 +54,8 @@ body{
 .submit_input:hover{
     border-bottom-left-radius: 0px;
     border-top-right-radius: 0px;
-    border-color: var(--Prim);
-    color: var(--Prim);
+    border-color: var(--Accent);
+    color: var(--Accent);
 }
 
 .directory_select{
@@ -68,6 +68,25 @@ body{
 }
 
 .directory_select:focus{
-    border: 2px solid var(--Prim);
-    color: var(--Prim);
+    border: 2px solid var(--Accent);
+    color: var(--Accent);
+}
+.progbar { 
+    height: 20px;
+    position: relative;
+    background: var(--Back);
+    border-radius: 25px;
+    padding: 10px;
+    box-shadow: inset 2px 2px 5px #bebebe,
+                inset -2px -2px 5px #ffffff;
+}
+.progbar > span {
+    display: block;
+    height: 100%;
+    border-radius: 25px;
+    background-color: var(--Accent);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 2px 2px 5px #bebebe,
+                -2px -2px 5px #ffffff;
 }

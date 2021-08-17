@@ -30,19 +30,87 @@
     <div class="card_wrapper" style="display: inline-block;">
         <div class="upload_container">
           <h2 class="upload">Upload</h2>
+          <div id="progbar-div" class="progbar" style="display: none;">
+            <span id="progbar-span" style="width: 0%;"></span>
+          </div>
         </div>
         <form class="form_container" action="upl" method="post" enctype="multipart/form-data">
           <input class="upload_input" type="file" name="filetoupload" id="dzf" required>
           <div class="label_wrapper">
             <label for="dispmetd">Save file to...</label>
-            <select class="directory_select" name="dispmetd" id="dispmetd">
-              <option value="dm_pubdir">Public Directory</option>
+            <select class="directory_select" name="dispmetd" id="dispmetd" onchange="dirSelect();">
+              <option selected="selected" value="dm_pubdir">Public Directory</option>
               <option value="dm_hide">Public Directory (hidden)</option>
               <option value="dm_personal">User Directory</option>
             </select>
+            <select style="display:none;" class="directory_select" name="folder" id="folder">
+              
+            </select>
           </div>
-          <input class="submit_input main_btn" type="submit">
+          <input class="submit_input main_btn" id="sbm-button" type="submit">
         </form>
     </div>
+    <script>
+      document.querySelector("#sbm-button").addEventListener("click", function(event) {
+          event.preventDefault();
+          var formData = new FormData();
+          var dispmetd = document.getElementById('dispmetd').value;
+          var file = document.getElementById('dzf').files[0];
+          formData.append('filetoupload', file);
+          formData.append('dispmetd', dispmetd);
+          if(typeof(document.getElementById('folder').value) != "undefined"){
+              var folder = document.getElementById('folder').value;
+              formData.append('folder', folder);
+          }
+
+          var xhr = new XMLHttpRequest();
+
+          xhr.open('post', '/upl', true);
+          xhr.upload.onprogress = function(e) {
+              if (e.lengthComputable) {
+                  var percentage = (e.loaded / e.total) * 100;
+                  document.getElementById('progbar-div').style.display = "block";
+                  document.getElementById('progbar-span').style.width = percentage + "%";
+              }
+          };
+          xhr.onerror = function(e) {
+              console.log('An error occurred while submitting the form. Maybe your file is too big');
+          };
+          xhr.onload = function() {
+              console.log(xhr.responseText);
+              document.getElementsByTagName('html')[0].innerHTML = xhr.responseText;
+              var bddiv = document.getElementById('backdrop');
+              if(typeof(bddiv) != "undefined"){
+                bddiv.onclick = function hideError(){
+                  location.reload();
+                }
+              }
+              console.log(this.statusText);
+          };
+          xhr.send(formData);
+      }, false);
+      function dirSelect(){
+        if(document.getElementById('dispmetd').value == "dm_personal"){
+          var c_http = new XMLHttpRequest();
+          c_http.open('GET', "/api/mydir", false);
+          c_http.send();
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred getting your directory listing. Please try again later.");
+          }
+          var result = JSON.parse(c_http.response);
+          var x = document.getElementById("folder");
+          result.dirs.forEach(function(elm){
+            var option = document.createElement("option");
+            option.text = elm;
+            x.add(option); 
+          });
+          document.getElementById('folder').style.display = "block";
+        }
+        else{
+          document.getElementById('folder').style.display = "none";
+        }
+      }
+    </script>
   </body>
 </html>

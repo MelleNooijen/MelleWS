@@ -99,8 +99,8 @@ tr:nth-child(even) {
 .main_btn:hover{
   border-bottom-left-radius: 0px;
   border-top-right-radius: 0px;
-  border-color: var(--Prim);
-  color: var(--Prim);
+  border-color: var(--Accent);
+  color: var(--Accent);
   cursor: pointer;
   box-shadow:  inset 18px 18px 38px #d5d5d5,
   inset -18px -18px 38px #ebebeb;
@@ -125,7 +125,7 @@ tr:nth-child(even) {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(200px, 100%, 600px);
+  width: min-content;
   background-color: rgb(244,67,54);
   box-shadow: inset 12px 12px 54px #972a21,
               inset -12px -12px 54px #ff5c4b;

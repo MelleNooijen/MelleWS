@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <title>MelleWS Test HTML File</title>
+        <link rel="stylesheet" href="/stylesheets/style.css">
+    </head>
+    <body>
+        <p>Testing asynchronous upload for <a href="/drive">MelleWS Drive</a></p>
+        <form class="form_container" action="/dev/clreq" method="post" enctype="multipart/form-data">
+            <input class="upload_input" type="file" name="filetoupload" id="dzf" required>
+            <label for="dispmetd">Save file to...</label>
+            <select class="directory_select" name="dispmetd" id="dispmetd" onchange="dirSelect();">
+                <option selected="selected" value="dm_pubdir">Public Directory</option>
+                <option value="dm_hide">Public Directory (hidden)</option>
+                <option value="dm_personal">User Directory</option>
+            </select>
+            <select style="display:none;" class="directory_select" name="folder" id="folder">
+            
+            </select>
+            <input id="sbm-button" class="submit_input main_btn" type="submit" onclick="asyncUpl(this);">
+        </form>
+        <p id="indicator"></p>
+        <script>
+            document.querySelector("#sbm-button").addEventListener("click", function(event) {
+                event.preventDefault();
+                var formData = new FormData();
+                var dispmetd = document.getElementById('dispmetd').value;
+                var file = document.getElementById('dzf').files[0];
+                formData.append('filetoupload', file);
+                formData.append('dispmetd', dispmetd);
+                if(typeof(document.getElementById('folder').value) != "undefined"){
+                    var folder = document.getElementById('folder').value;
+                    formData.append('folder', folder);
+                }
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('post', '/upl', true);
+                xhr.upload.onprogress = function(e) {
+                    console.log(e);
+                    if (e.lengthComputable) {
+                        var percentage = (e.loaded / e.total) * 100;
+                        document.getElementById('indicator').innerText = percentage;
+                    }
+                };
+                xhr.onerror = function(e) {
+                    console.log('An error occurred while submitting the form. Maybe your file is too big');
+                };
+                xhr.onload = function() {
+                    console.log(xhr.responseText);
+                    document.getElementsByTagName('html')[0].innerHTML = xhr.responseText;
+                    console.log(this.statusText);
+                };
+                xhr.send(formData);
+            }, false);
+        </script>
+    </body>
+</html>

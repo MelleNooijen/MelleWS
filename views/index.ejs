@@ -40,10 +40,10 @@
       }
     </style>
   </head>
-  <body>
+  <body style='background-image: url("../images/bg2.svg");'>
     <script>
       var images = ['bg1.svg', 'bg2.svg', 'bg3.svg', 'bg4.svg', 'bg5.svg'];
-      $('body').css({'background': 'whitesmoke url(../images/' + images[Math.floor(Math.random() * images.length)] + ' center cover)'});
+      $('body').css('background-image', 'url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
       console.log('url(../images/' + images[Math.floor(Math.random() * images.length)] + ')');
     </script>
     <%- include('bar', {req: req, barCol: "180,180,180.white"}); %>
@@ -61,7 +61,7 @@
       <h1 class="header_title" id="htitle" style="font-size: 75px; font-weight: 1;"><b>MelleWS</b></h1>
       <p class="webapp_version" style="color:rgba(--Accent); mix-blend-mode: difference; font-weight: 550;"><%= version %></p>
       
-      <hr class="seperator" style="background: linear-gradient(120deg, rgba(<%= barCol.split(".")[0]%>,.9) 0%, rgba(<%= barCol.split(".")[0]%>,.1) 75%); margin:auto;width:75%;">
+      <hr class="seperator">
       <p class="header_info" id="hsub" style="font-size: 25px;"><b>Welcome to MelleWS,<br/></b>a fast and reliable web platform.</p>
     </div>
 
