@@ -1,4 +1,5 @@
 # MelleWS stuff
+public/images/user/*
 public/user/*
 public/upload/*
 public/json/*

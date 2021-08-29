@@ -3,45 +3,170 @@
   <head>
     <title><%= title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">  </head>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/profile.css">
   <body>
     <%- include('bar', {req: req}); %>
     <br/>
     <br/>
     <br/>
-    <div class="w3-container w3-center">
-      <h1><%= user.username %></h1>
-      <p>Hello <%= user.username %>, your user details can be found below.</p>
-      <table class="w3-table w3-bordered w3-display-middle" style="width:15%">
-        <tbody>
-          <tr>
-            <td class="tg-1wig"><strong>Data</strong></td>
-            <td class="tg-1wig"><strong>Value</strong></td>
-          </tr>
-          <tr>
-            <td class="tg-0pky">Username</td>
-            <td class="tg-0pky"><%= user.username %></td>
-          </tr>
-          <tr>
-            <td class="tg-0pky">E-mail address</td>
-            <td class="tg-0pky"><%= user.email %></td>
-          </tr>
-          <tr>
-            <td class="tg-0pky">Colour Preference</td>
-            <td class="tg-0pky w3-center">
-              <form action="/profilesettings" method="POST">
-                <% if(user.rgb == ""){ %>
-                  <input type="color" name="color" id="color" value="#B4B4B4" required/>
-                <% } else { %>
-                  <% var a = user.rgb; a = a.split(","); var b = a.map(function(x){ x = parseInt(x).toString(16); return (x.length==1) ? "0"+x : x; }); b = "#"+b.join(""); var hexcol = b %>
-                  <input type="color" name="color" id="color" value="<%= hexcol %>" required/>
-                <% } %>
-                <button type="sumbit">Save</button>
-              </form>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="text-container">
+      <h1><%= user.username %>'s settings</h1>
+      <p>Hello <%= user.username %>, your user details and settings can be found below.</p>
+    </div>
+    <div class="toup" style="visibility:hidden" onclick="window.location.href='/user/<%= user.username %>/';">&#8592;</div>
+    <div class="main-container">
+      <div class="card card-1">
+        <span><strong>User settings</strong></span>
+        <table>
+          <tbody>
+            <tr>
+              <td>Username</td>
+              <td><%= user.username %></td>
+            </tr>
+            <tr>
+              <td>E-mail address</td>
+              <td><%= user.email %></td>
+            </tr>
+            <tr>
+              <td>UserPage</td>
+              <td><input type="checkbox" id="up-box" onchange="createUserPage()"><p id="upstatus">Loading status...</p></td>
+            </tr>
+            <tr>
+              <td>Private Files</td>
+              <td>
+                <select class="selector" id="acs-sel" onchange="setAccess(this.value)" disabled>
+                  <option value="private">Only for myself</option>
+                  <option value="partial" disabled>Only for myself, except specific files</option>
+                  <option value="public">Fully accessible</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Colour Preference</td>
+              <td>
+                <form action="/profilesettings" method="POST">
+                  <% if(user.rgb == ""){ %>
+                    <input class="color-size" type="color" name="color" id="color" value="#B4B4B4" onchange="saveColor();" required/>
+                  <% } else { %>
+                    <% var a = user.rgb; a = a.split(","); var b = a.map(function(x){ x = parseInt(x).toString(16); return (x.length==1) ? "0"+x : x; }); b = "#"+b.join(""); var hexcol = b %>
+                    <input class="color-size" type="color" name="color" id="color" value="<%= hexcol %>" onchange="saveColor();" required/>
+                  <% } %>
+                  <button type="sumbit" id="submit-button" class="color-size">Save</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card card-2">
+        <span><strong>Page settings</strong></span>
+        <table>
+          <tbody>
+            <tr>
+              <td>About Me</td>
+              <td><textarea id="bio" rows="10" cols="30" class="textarea"></textarea></td>
+            </tr>
+            
+          </tbody>
+        </table>
+        <button class="main_btn" onclick="setSettings()">Save</button>
+      </div>
+      <script>
+        var url = '/api/userpage/<%= user.username %>';
+        console.log("running!");
+        var http = new XMLHttpRequest();
+        http.open('GET', url, false);
+        http.send();
+        var upbox = document.getElementById('up-box');
+        var uppar = document.getElementById('upstatus');
+        console.log(http);
+        if (http.status != 404){
+          document.getElementsByClassName('toup')[0].style.visibility = "visible";
+          upbox.setAttribute("checked", "checked");
+          upbox.setAttribute("disabled","disabled");
+          if(http.status == 201){
+            uppar.innerText = "Custom";
+          }
+          else {
+            uppar.innerText = "Profile";
+          }
+        } else if(http.status == 500) { 
+          upbox.setAttribute("disabled","disabled")
+          uppar.innerText = "Error";
+          alert("An error occurred checking the current status of your UserPage. Please try again later.");
+        } else {
+          upbox.removeAttribute("checked");
+          upbox.removeAttribute("disabled");
+          uppar.innerText = "";
+        }
+        function createUserPage(){
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "create"}));
+          console.log(c_http);
+          location.reload();
+        }
+        function getProfilePicture(){
+          var p_http = new XMLHttpRequest();
+          p_http.open('GET', "/images/user/<%= user.username %>.png", false);
+          p_http.send();
+        }
+        function setAccess(value){
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "set-private-access","access-type":value}));
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred saving your settings, please try again later.");
+          }
+          else {
+            alert('Successfully set new value\n -- TODO: Add proper success messages')
+          }
+        }
+        function saveColor(){
+          document.getElementById('submit-button').click();
+        }
+        function getPData(){
+          var c_http = new XMLHttpRequest();
+          c_http.open('GET', "/api/get-profile-data", false);
+          c_http.send();
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred getting your profile data. Some settings may not be available.");
+          }
+          var result = JSON.parse(c_http.response);
+          console.log(result);
+          if(result['access-type'] == "public"){
+            document.getElementById('acs-sel').removeAttribute('disabled');
+            document.getElementById('acs-sel').value = 'public';
+          }
+          else {
+            document.getElementById('acs-sel').removeAttribute('disabled');
+            document.getElementById('acs-sel').value = 'private';
+          }
+        }
+        function setSettings(){
+          var value = document.getElementById('bio').value;
+          console.log(value);
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "set-settings","bio":value}));
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred saving your settings, please try again later.");
+          }
+          else {
+            alert('Successfully set new value\n -- TODO: Add proper success messages')
+          }
+  
+        }
+        getPData();
+        getProfilePicture();
+      </script>
     </div>
   </body>
 </html>

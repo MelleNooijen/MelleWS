@@ -1,0 +1,64 @@
+@keyframes startanim {
+    from {
+      box-shadow:  0px 0px 10px #bebebe,
+      -0px -0px 10px #ffffff;
+      opacity: 0;
+    }
+    to {
+       box-shadow:  20px 20px 60px #bebebe,
+                -20px -20px 60px #ffffff;
+      opacity: 1;
+    }
+}
+
+
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--Back);
+}
+
+.login_header{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    left: 50%;
+    transform: translate(0, -50%);
+}
+
+.login_card{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    text-align: center;
+    /*background: linear-gradient(45deg, rgb(71, 21, 255) 0%, rgb(221, 17, 181) 100%);
+    /*background: linear-gradient(45deg, #74EE15 0%, #001EFF 100%);*/
+    background: var(--Back);
+    padding: 2rem;
+    border-radius: 90px;
+    box-shadow:  20px 20px 60px #bebebe,
+             -20px -20px 60px #ffffff;
+
+    animation: startanim 1.0s;
+}
+
+.login_form{
+    display: flex;
+    flex-direction: column;
+}
+.input{
+    margin: 1em;
+}
+.text_input{
+    -webkit-appearance: none;
+    border: transparent;
+    border-radius: 90px;
+    background-color: var(--Back);
+    box-shadow: inset 6px 6px 18px #bcbcbc,
+    inset -6px -6px 18px #ffffff;
+    padding: 20px;
+}
+.text_input:focus{
+    border: transparent;
+}

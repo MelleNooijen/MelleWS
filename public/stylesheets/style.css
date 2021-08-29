@@ -1,3 +1,8 @@
+body{
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--Back);
+}
+
 a.dir {
   color: #009688;
   text-decoration: none;
@@ -17,13 +22,16 @@ table {
 }
 
 td, th {
-  border: 1px solid #dddddd;
+  border: 1px transparent;
+  border-radius: 25px;
   text-align: left;
-  padding: 8px;
+  padding: 12px;
 }
 
 tr:nth-child(even) {
-  background-color: #dddddd;
+  
+  background-color: transparent;
+  overflow: hidden;
 }
 .svg-icon {
   width: 1em;
@@ -73,3 +81,74 @@ tr:nth-child(even) {
 .dropdown-content a:hover {background-color: #ddd;}
 
 .drop:hover + .dropdown-content {display: block;}
+
+.main_btn{
+  font-size: 16px;
+  font-weight: 600;
+  background: transparent;
+  border: 3px solid var(--btn);
+  color: var(--btn);
+  border-radius: 15px;
+  padding: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  /* background: linear-gradient(145deg, #cacaca, #f0f0f0); */
+  transition: all 0.4s ease-out;
+}
+
+.main_btn:hover{
+  border-bottom-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-color: var(--Accent);
+  color: var(--Accent);
+  cursor: pointer;
+  box-shadow:  inset 18px 18px 38px #d5d5d5,
+  inset -18px -18px 38px #ebebeb;
+}
+.ersc-container{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.inset-pre{
+  border-radius: 22px;
+  box-shadow: inset 18px 18px 54px #c7c7c7,
+              inset -18px -18px 54px #f9f9f9;
+  padding: 2rem;
+}
+.red-pre{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min-content;
+  background-color: rgb(244,67,54);
+  box-shadow: inset 12px 12px 54px #972a21,
+              inset -12px -12px 54px #ff5c4b;
+  color: white;
+}
+.error-div{
+   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2;
+}
+.err-backdrop{
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(36, 33, 33, 0.693);
+  z-index: 1;
+}

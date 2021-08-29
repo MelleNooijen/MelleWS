@@ -1,0 +1,48 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    justify-self: center;
+    margin: auto;
+    width: 67%;
+    /* margin-top: 12rem; */
+}
+.maincard{
+    border-radius: 60px;
+    margin: 32px;
+    display: flex;
+    margin-top: 12rem;
+    /*
+    align-items: center;
+    justify-content: center;
+    */
+    padding: 32px;
+    flex-direction: column;
+    box-shadow:  20px 20px 60px #bebebe,
+                -20px -20px 60px #ffffff;
+}
+.avatar {
+    position: absolute;
+    border-radius: 100%;
+    width: 4rem;
+    box-shadow: 12px 12px 42px #c7c7c7,
+                -12px -12px 42px #f9f9f9;
+}
+.name {
+    padding-left: 5rem;
+}
+.row {
+    display: flex;
+    flex-direction: row;
+}
+.card {
+    border-radius: 60px;
+    padding: 32px;
+    box-shadow:  20px 20px 60px #bebebe,
+                -20px -20px 60px #ffffff;
+    width: 50%;
+    margin: 32px;
+}
+.menu-bar{
+    margin: none;
+}

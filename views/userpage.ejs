@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>MelleWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/userpage.css">
+  </head>
+  <body>
+    <%- include('bar', {req: req}); %>
+    <div class="page">
+      <div class="maincard">
+        <div class="name-picture">
+          <% if(cim){ %>
+          <img class="avatar" src="/images/user/<%= name %>.png" alt="Avatar">
+          <% } else { %>
+          <img class="avatar" src="/images/avatar.png" alt="Avatar">
+          <% } %>
+          <h1 class="name"><%= name %></h1>
+        </div>
+        <p>UserPages are under construction. Meanwhile, stringified JSON data of the page can be found below.</p>
+        <pre class="inset-pre"><%= JSON.stringify(data, null, 2) %></pre>
+      </div>
+      <div class="row">
+        <div class="card card-1">
+          <h2>About</h2>
+          <p><%= data.bio %></p>
+        </div>
+        <div class="card card-2">
+          <h2>Public Files</h2>
+          <p>Public File display is not yet available.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

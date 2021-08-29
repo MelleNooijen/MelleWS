@@ -33,7 +33,7 @@
           <% } else if(req.session.user.username != flobj.usrnm) { %>
             <a class="w3-button w3-teal w3-disabled" href="#">Unauthorised.</a>
           <% } else { %>
-            <a class="w3-button w3-teal" href="/user/<%= flobj.usrnm %>/<%= encodeURIComponent(flobj.name) %>" download="">Download (private)</a>
+            <a class="w3-button w3-teal" href="/user/<%= flobj.usrnm %><%= (flobj.folder == "/" ? "" : flobj.folder) %>/<%= encodeURIComponent(flobj.name) %>" download="">Download (private)</a>
           <% } %>
         <% } else { %>
           <a class="w3-button w3-teal" href="/direct/<%= encodeURIComponent(flobj.name) %>" download="<%= decodeURIComponent(flobj.name) %>">Download</a>
@@ -52,7 +52,6 @@
               <td class="tg-1wig"><%= view.name %></td>
               <td class="tg-1wig"><%= view.time.split("T")[0] + " " + view.time.split("T")[1].substring(0,5) + " UTC" %></td>
             </tr>
-            <% console.log(view) %>
           <% }); %>
         </tbody>
       </table>

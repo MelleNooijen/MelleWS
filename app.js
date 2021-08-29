@@ -24,7 +24,7 @@ var secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
 const Keyv = require('keyv'); // legacy
-const { info } = require('console');
+const { info, profile } = require('console');
 const { report } = require('./routes/index');
 const keyv = new Keyv('sqlite://login.sqlite'); // legacy
 const keyvUsNms = new Keyv('sqlite://login.sqlite',{ // legacy
@@ -56,7 +56,6 @@ app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 // init login system
 var connection = mysql.createConnection({
   host: secrets.sql_host,
@@ -88,7 +87,6 @@ passport.use('local', new LocalStrategy({
     var salt = secrets.pass_salt;
     connection.query("select * from users where username = ?", [username], function(err, rows){
     console.log(err);
-    console.log("ROWS BELOW");
     if (err) return done(null, false, req.flash('message', "An internal error occurred."));
     if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
     salt = salt+''+password;
@@ -166,25 +164,29 @@ app.post('/upl', async function(req, res){
   form.uploadDir = "./public/direct/";
   form.parse(req, async function (err, fields, files) {
       if (!req.isAuthenticated()) {
-        reportErr(res, req, "You are not logged in. Please log in.");
+        res.render("drive", {req: req, error: "You are not logged in. Please log in."});
       }
       else {
+        if(typeof(files.filetoupload) == "undefined"){
+          reportErr(res, req, "Invalid request");
+          return;
+        }
         var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
         //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
         filenameToUpload = encodeURIComponent(filenameToUpload);
         if (false) {
-          reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+          res.render("drive", {req: req, error: "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character."});
         }
         else {
           if (filenameToUpload.startsWith("index") && fields.dispmetd != "dm_personal"){
-            reportErr(res, req, "Encountered an error! (04: The public directory isn't a web hosting service, use UserPages!");
+            res.render("drive", {req: req, error: "Encountered an error! (04: The public directory isn't a web hosting service, use UserPages!"});
             return;
           }
           else {
             var flSz = files.filetoupload.size / 1000000;
             flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
             if (flSz > 100) {
-              reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
+              res.render("drive", {req: req, error: "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)"})
             }
             else {
               var safeName = filenameToUpload;
@@ -194,8 +196,12 @@ app.post('/upl', async function(req, res){
               }
               var oldpath = files.filetoupload.path;
               console.log(fields.dispmetd);
+              console.log(fields.folder);
               if(fields.dispmetd == "dm_personal") {
-                var newpath = path.normalize(path.join(__dirname, "public/user/") + req.session.user.username + "/" + safeName);
+                if(fields.folder.includes(".")){
+                  reportErr("Invalid folder selected");
+                }
+                var newpath = path.normalize(path.join(__dirname, "public/user/") + req.session.user.username + fields.folder + "/" + safeName);
                 var fuType = "user-upload/" + req.session.user.username;
                 if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
                   fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
@@ -206,25 +212,33 @@ app.post('/upl', async function(req, res){
                 var fuType = "upload";
               }
               if (fs.existsSync(path.normalize(path.join(__dirname, "public/direct/") + safeName)) && fields.dispmetd != "dm_personal"){
-                reportErr(res, req, "The file you are trying to upload already exists. Please rename the file.");
+                res.render("drive", {req: req, error: "The file you are trying to upload already exists. Please rename the file."});
                 return;
               }
               fs.rename(oldpath, newpath, function (err) {
-                console.log(newpath);
                 if (err){
-                  reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                  res.render("drive", {req: req, error: "An error occurred creating the metadata file for the uploaded file."});
                   throw err;
                 }
-                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + '}';
+                if(typeof(fields.folder) == "undefined"){
+                  var folder = "/";
+                }
+                else{
+                  var folder = fields.folder;
+                }
+                var fileObj = '{ "name":' + '"' + safeName + '"' + ', "usrnm":' + '"' + req.session.user.username + '"' + ', "type":' + '"' + files.filetoupload.type + '"' + ', "size":' + files.filetoupload.size + ', "folder": "' + folder + '"}';
                 var jsonFileName = "./public/json/" + safeName + ".json";
                 fs.writeFile(jsonFileName, fileObj, function(err){
                   if (err) {
-                    reportErr(res, req, "An error occurred creating the metadata file for the uploaded file.");
+                    res.render("drive", {req: req, error: "An error occurred creating the metadata file for the uploaded file."});
                     return;
                   }
                 });
+                if(folder == "/"){
+                  folder = "";
+                }
                 var fullUrl = "http://mellemws.my.to/" + fuType + "/" + safeName;
-                reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType + "/" + filenameToUpload + ".", fullUrl);
+                reportSuccess(res, req, "File uploaded successfully and can be found at /" + fuType +  "/" + safeName + ".", fullUrl);
                 return;
               });
             }
@@ -251,7 +265,6 @@ app.post('/createuid', async function(req, res){ // legacy
     reportSuccess(res, req, usernameStr + ", your user ID is " + usID + ".\nYou can now log in.")
     var userObject = {name:req.body.usnm, email:req.body.mailad, pro:false};
     keyv.set(usIDstr, userObject);
-    console.log(userObject);
     keyvUsNms.set(usernameStr, true);
     return;
   }
@@ -328,12 +341,12 @@ app.get('/upload/*', async function(req, res){
       return;
     }
     else {
-      console.log(data);
+      console.log({data});
       fileContent = data;
     }
     console.log(fileContent);
     if (fileContent == "none."){
-      res.render("interr", { req: req, errString: "The requested file does not exist." });
+      reportErr(res, req, "The requested file does not exist." );
     }
     else {
       var parsedFC = JSON.parse(fileContent);
@@ -342,7 +355,6 @@ app.get('/upload/*', async function(req, res){
         if(err){
           throw err;
         }
-        console.log(data);
         if(!data[0]){
           console.log("File has not been viewed yet.");
           var regFile = {count:1,views:[{name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}]}
@@ -355,13 +367,11 @@ app.get('/upload/*', async function(req, res){
         }
         else{
           var originalObj = JSON.parse(data[0].views);
-          console.log(originalObj);
           var newCount = originalObj.count + 1;
           //console.log(originalObj.views.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress}));
           var viewArray = originalObj.views;
           viewArray.push({name: req.session.user.username || "Anonymous", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
           var regFile = {count:newCount,views:viewArray};
-          console.log(regFile);
           // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
           var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
           connection.query(query, function(err, data){
@@ -375,6 +385,9 @@ app.get('/upload/*', async function(req, res){
       return parsedFC;
     }
   });
+});
+app.get('/dev/test-upload-error', function(req, res){
+  res.render('drive', { req: req, error: "Testing error!" });
 });
 app.get('/simulate-view', function(req, res){
   var filetosim = "test3.file";
@@ -401,7 +414,6 @@ app.get('/simulate-view', function(req, res){
       var viewArray = originalObj.views;
       viewArray.push({name: "Simulated", time: new Date(), ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.connection.remoteAddress});
       var regFile = {count:newCount,views:viewArray};
-      console.log(regFile);
       // UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'
       var query = mysql.format("UPDATE `fileviews` SET `file`='" + filetosim + "',`views`='" + JSON.stringify(regFile) + "' WHERE `file` = '" + filetosim + "'");
       connection.query(query, function(err, data){
@@ -420,15 +432,16 @@ app.get('/user-upload/*', async function(req, res){
   fs.readFile(jsfn, function(err, data){
     if(err){
       reportErr(res, req, "An error occurred loading the file page.\nThis is likely because the file does not exist.");
+    } else {
+      fileContent = data;
     }
-    console.log(fileContent);
     if (fileContent == "none."){
-      res.render("interr", { req: req, errString: "The requested file does not exist." });
+      reportErr(res, req, "The requested file does not exist." );
     }
     else {
       var parsedFC = JSON.parse(fileContent);
       console.log(parsedFC);
-      res.render("dlview", { req: req, flobj: parsedFC, private: true});
+      res.render("dlview", { req: req, flobj: parsedFC, private: true, viewData: []});
       return parsedFC;
     }
   });
@@ -453,10 +466,7 @@ app.get('/pubdir/*', function(req, res, next) {
   else{
     isHomeDir = false;
   }
-  console.log(dir);
-  console.log(isHomeDir);
   var folder = './public/direct/' + dir;
-  console.log(folder);
   fs.readdir(folder, options, (err, files) => {
     var fileArray = [];
     if(!files){
@@ -518,7 +528,6 @@ app.get('/pubdir/*', function(req, res, next) {
         else {
           var icon = "default";
         }
-        console.log(icon);
         var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
@@ -553,6 +562,9 @@ app.get('/mydir/*', async function(req, res, next) {
     return;
   }
   var usrName = req.session.user.username;
+  if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
+    fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
+  }
   var dir = req.url.replace('/mydir/','');
   if (!dir.endsWith("/")){
     dir = dir + "/";
@@ -626,7 +638,6 @@ app.get('/mydir/*', async function(req, res, next) {
         else {
           var icon = "default";
         }
-        console.log(icon);
         var fullTD = date_d + "-" + date_m + "-" + date_y + " " + time_h + ":" + time_m;
         var fileObject = {name: fileName, type: fileType, date: fullTD, icon: icon};
         fileArray.push(fileObject);
@@ -667,7 +678,6 @@ app.get('/editmydir', isAuthenticated, function(req, res){
   res.render('diredit', { req: req });
 });
 app.post('/editmydir/*', isAuthenticated, function(req, res){
-  console.log(req);
   var action = req.url.replace("/editmydir/","");
   if(action == "newfile"){
     var filenameToCreate = req.body.nfname.replace(/ /g, "_");
@@ -678,6 +688,11 @@ app.post('/editmydir/*', isAuthenticated, function(req, res){
     console.log("going to create file " + safeName + " with content " + req.body.nfcontent)
     fs.writeFileSync("./public/user/" + req.session.user.username + "/" + safeName,req.body.nfcontent);
   } else if(action == "newdir") {
+    var filenameToCreate = req.body.ndname.replace(/ /g, "_");
+    //var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+    filenameToCreate = encodeURIComponent(filenameToCreate);
+    var safeName = filenameToCreate;
+    stringEscape(safeName);
     console.log("going to create directory " + req.body.ndname + ".")
     
     fs.mkdirSync("./public/user/" + req.session.user.username + "/" + safeName);
@@ -690,13 +705,163 @@ app.post('/editmydir/*', isAuthenticated, function(req, res){
 app.get('/profile', isAuthenticated, function(req, res){
   res.render('profile', { req: req, title: "Your Profile", user: req.session.user });
 });
+app.post('/up-edit', isAuthenticated, function(req, res){
+  if(req.body.function == "create"){
+    connection.query("INSERT INTO `userpage`(`name`, `data`) VALUES ('" + req.session.user.username + "','{}')");
+    res.end("Created UserPage for " + req.session.user.username + ".");
+  }
+  else if(req.body.function == "set-private-access"){
+    if(typeof(req.body['access-type']) == "undefined"){
+      res.status(500).end();
+      return;
+    }
+    if(!(req.body['access-type'].match(/^[a-zA-Z0-9]+$/g))){
+      res.status(500).end();
+      return;
+    }
+    console.log("trig " + req.body['access-type']);
+    connection.query("UPDATE `access` SET `data`='{\"type\": \"" + req.body['access-type'] + "\"}' WHERE `user` = '" + req.session.user.username + "' ");
+    res.status(200).end();
+  }
+  else if(req.body.function == "set-settings"){
+    console.log(req.session.user.username);
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + req.session.user.username + "'", async function(err, data){
+      if(err){
+        console.log(err);
+      }
+      var profileData = JSON.parse(data[0].data);
+      profileData['bio'] = req.body.bio;
+      console.log(profileData);
+      connection.query("UPDATE `userpage` SET `data`='" + JSON.stringify(profileData) + "' WHERE `name` = '" + req.session.user.username + "' ");
+      res.status(200).end();
+    });
+  }
+  else{
+    reportErr(res, req, "Unknown action " + action);
+    return;
+  }
+});
+app.get('/user/*', function(req, res, next){
+  console.log("I got a trig!");
+  var userPage = req.originalUrl.split('/')[2];
+  console.log(req.originalUrl.split('/'));
+  console.log(req.originalUrl.split('/')[3]);
+  if(req.originalUrl.split('/')[3] || req.originalUrl.split('/')[4]){
+    console.log("me getting trig?");
+    if(fs.existsSync(path.normalize("./public/" + req.originalUrl))){
+      if(!(req.isAuthenticated())){
+        reportErr(res, req, "You need to be logged in to see private files.");
+        return;
+      }
+      connection.query("SELECT * FROM `access` WHERE `user` = '" + userPage + "'", function(err, data){
+        if(userPage == req.session.user.username || JSON.parse(data[0].data).type == "public"){
+          //console.log("I should download");
+          //console.log(path.normalize("./public/" + req.originalUrl));
+          //res.download(path.normalize("./public/" + req.originalUrl));
+          //res.end();
+          next();
+        }
+        else{
+          reportErr(res, req, "You do not have access to this file.");
+          return;
+        }
+      });
+    }
+    else{
+      reportErr(res,req,"The file does not exist.");
+      return;
+    }
+  }
+  else {
+    var upPath = path.normalize("./public/user/" + userPage + "/");
+    if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
+      next();
+    }
+    console.log(req.originalUrl.split('/')[2]);
+    console.log("I _should_ get a trig");
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + userPage + "'", function(err, data){
+      if(err){
+        console.log(err);
+        reportErr(res, req, err);
+        return;
+      }
+      if(data.length != 0){
+        console.log(data[0]);
+        console.log("TRIGGERED");
+        var customImage = fs.existsSync(path.normalize(`./public/images/user/${data[0].name}.png`));
+        res.render("userpage", { req: req, name: data[0].name, data: JSON.parse(data[0].data), cim: customImage });
+      }
+      else{
+        reportErr(res, req, "This user does not exist or has UserPages disabled.")
+        return;
+      }
+    });
+  }
+});
+app.get('/api/mydir', function(req,res){
+  if(!(req.isAuthenticated())){
+    res.status(403).end();
+    return;
+  };
+  if (!fs.existsSync(path.normalize("./public/user/" + req.session.user.username))){
+    fs.mkdirSync(path.normalize("./public/user/" + req.session.user.username));
+  }
+  var dirlist = fs.readdirSync(path.normalize('./public/user/' + req.session.user.username), { withFileTypes: true });
+  var a = ['/'];
+  var b = dirlist.filter(dirent => dirent.isDirectory()).map(dirent => "/" + dirent.name);
+  var dirArray = a.concat(b);
+  res.json({"files": dirlist, "dirs": dirArray});
+  res.end();
+});
+app.get('/api/userpage/*', function(req, res){
+  var upPath = path.normalize("./public/user/" + req.originalUrl.split('/')[3] + "/");
+  if(fs.existsSync(upPath + "index.htm") || fs.existsSync(upPath + "index.html")){
+    res.status(201).end();
+    return;
+  }
+  console.log(req.originalUrl.split('/'));
+  if(!(req.originalUrl.split('/')[3].match(/^[a-zA-Z0-9]+$/g))){
+    res.status(500).end();
+  }
+  else{
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + req.originalUrl.split('/')[3] + "'", function(err, data){
+      if(err){
+        console.log(err);
+        res.status(500).end();
+      }
+      if(data.length != 0){
+        res.status(200).end();
+      }
+      else{
+        res.status(404).end();
+      }
+    });
+  }
+});
+app.get('/api/get-profile-data', function(req, res){
+  if(!(req.isAuthenticated())){
+    res.status(403).end();
+  }
+  else{
+    connection.query("SELECT * FROM `access` WHERE `user` = '" + req.session.user.username + "'", function(err, data){
+      if(err){
+        console.log(err);
+        res.status(500).end("Database error");
+      }
+      console.log(data);
+      var acs_type = (data[0] ? JSON.parse(data[0].data).type : "unknown");
+      res.json({"access-type":acs_type});
+      res.end();
+    });
+  }
+});
 app.post('/profilesettings', function(req, res){
   if(!req.isAuthenticated()){
-    reportErr("Please log in to set your favourite colour!");
+    reportErr(res, req, "Please log in to set your favourite colour!");
   }
   else {
     if(!req.body.color){
-      reportErr('Please set a colour from the Profile page, not an out-of-nowhere POST request without the proper syntax!')
+      reportErr(res, req, 'Please set a colour from the Profile page, not an out-of-nowhere POST request without the proper syntax!')
     }
     else {
       function hexToRgb(hex) {
@@ -708,19 +873,28 @@ app.post('/profilesettings', function(req, res){
         } : null;
       }
       var rgbString = hexToRgb(req.body.color).r + "," + hexToRgb(req.body.color).g + "," + hexToRgb(req.body.color).b;
-      console.log(rgbString);
       connection.query("UPDATE `users` SET `rgb` = '" + rgbString + "' WHERE `users`.`username` = '" + req.session.user.username + "'", function(err, data){
         if(err){
           throw err;
         }
-        console.log(req.session.user.rgb);
         req.session.user.rgb = rgbString;
         res.redirect('/profile');
       });
     }
   }
 });
-
+app.post('/dev/clreq', function(req, res){
+  console.log(req);
+  res.end("Logged request to console.");
+});
+app.get('/dev/testsuccess', function(req, res){
+  res.render("success", { req: req, sucString: "Nothing was actually done, this is just a test render of the success page.", sucUrl: "https://www.google.com/" }); // render success
+});
+app.get('/dev/async-upl', function(req, res){
+  var htmlFile = fs.readFileSync("./dev/async-upl.html", {encoding: "utf-8"});
+  res.send(htmlFile);
+  res.end();
+});
 /* 
   API handlers
 */
@@ -728,63 +902,69 @@ app.get("/api/ping", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.write(apiHeader);
   res.write("\n  You successfully pinged the MelleWS API!\n");
-  res.end("\n -- end of response -- " + new Date());
+  res.end("\n -- end of response -- " + new Date() + "\n");
 });
 app.get("/api/reqdetails", function(req, res){
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
   res.write("\n  Details found in your HTTP request can be found below.\n");
-  res.write("\n  User Agent: " + req.rawHeaders[3] + "\n")
-  console.log(req.rawHeaders[3]);
-  res.end("\n -- end of response -- " + new Date());
+  res.write("\n  User Agent: " + req.rawHeaders[3] + "\n");
+  // -- For some reason this code is triggering HTTP overload errors, even just logging the request JSON.
+  //console.log(JSON.stringify(req));
+  //res.write("\n  Raw JSON: " + JSON.stringify(req));
+  //res.write("\n  Full Request JSON: " + JSON.stringify(req, null, 2) + "\n")
+  res.end("\n -- end of response -- " + new Date() + "\n");
 });
 app.post('/api/upl', async function(req, res){
-  var form = new formidable.IncomingForm();
-  // path.join(__dirname, "public\\upload\\")
-  form.uploadDir = "./public/upload/";
-  form.parse(req, async function (err, fields, files) {
-    if (fields.usrID) {
-      const getResult = await keyv.get(fields.usrID);
-      if (getResult === void(0)) {
-        reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
-      }
-      else {
-        var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
-        console.log(filenameToUpload);
-        var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
-        if (filenameToUpload.match(invalidCharsT)) {
-          reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
-        }
-        else {
-          if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
-            reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
-          }
-          else {
-            var flSz = files.filetoupload.size / 1000000;
-            flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
-            if (flSz > 100) {
-              reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
-            }
-            else {
-              var safeName = filenameToUpload;
-              stringEscape(safeName);
-              var oldpath = files.filetoupload.path;
-              var newpath = path.join(__dirname, "public\\upload\\") + safeName;
-              fs.rename(oldpath, newpath, function (err) {
-                if (err) throw err;
-                reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
-              });
-            }
-          }
-        }
-      }
-    }
-    else {
-      reportErr(res, req, "No User ID (code 01).");
-    }
-  });
+  reportApiErr(res, req, "API uploading is currently unavailable.")
+  // var form = new formidable.IncomingForm();
+  // // path.join(__dirname, "public\\upload\\")
+  // form.uploadDir = "./public/upload/";
+  // form.parse(req, async function (err, fields, files) {
+  //   if (fields.usrID) {
+  //     const getResult = await keyv.get(fields.usrID);
+  //     if (getResult === void(0)) {
+  //       reportErr(res, req, "User ID not found in database (code 02).<br/>Check if your User ID was entered correctly.");
+  //     }
+  //     else {
+  //       var filenameToUpload = files.filetoupload.name.replace(/ /g, "_");
+  //       console.log(filenameToUpload);
+  //       var invalidCharsT = /[!@#^\&\*\(\)=\{\}\[\]\\|:;“‘<>,\?]/;
+  //       if (filenameToUpload.match(invalidCharsT)) {
+  //         reportErr(res, req, "Encountered an error! (03: Filename contains invalid characters).<br/>The filename contains a prohibited character.");
+  //       }
+  //       else {
+  //         if (filenameToUpload.includes("/") || filenameToUpload.includes("\\")) {
+  //           reportErr(res, req, "Encountered an error! (04: Malicious file detected.)<br/>The file you were trying to upload was detected as malicious.");
+  //         }
+  //         else {
+  //           var flSz = files.filetoupload.size / 1000000;
+  //           flSz = Math.round((flSz + Number.EPSILON) * 100) / 100;
+  //           if (flSz > 100) {
+  //             reportErr(res, req, "Encountered an error! (05: File too large)<br/>The file you were trying to upload is too large (" + flSz + " MB compared to the limit of 100 MB)")
+  //           }
+  //           else {
+  //             var safeName = filenameToUpload;
+  //             stringEscape(safeName);
+  //             var oldpath = files.filetoupload.path;
+  //             var newpath = path.join(__dirname, "public\\upload\\") + safeName;
+  //             fs.rename(oldpath, newpath, function (err) {
+  //               if (err) throw err;
+  //               reportSuccess(res, req, "File uploaded successfully and can be found at /upload/" + filenameToUpload + ".");
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  //   else {
+  //     reportErr(res, req, "No User ID (code 01).");
+  //   }
+  // });
 });
 // End of API handlers
+// Serve static, but only after checking that the user has access to the files accessed
+app.use(express.static(path.join(__dirname, 'public')));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -813,7 +993,7 @@ app.use(function(err, req, res, next) {
         res.write("     _____     _ _     _ _ _ _____ \n    |     |___| | |___| | | |   __|\n    | | | | -_| | | -_| | | |__   |\n    |_|_|_|___|_|_|___|_____|_____|\n")
         res.write("\n  An error occurred. Details can be found below.\n");
         res.write("\n  HTTP Status: " + err.status + "\n  Error message: " + err.message);
-        res.end("\n -- end of response -- " + new Date());
+        res.end("\n -- end of response -- " + new Date() + "\n");
       }
       else {
         res.render('error', { req: req });
@@ -822,7 +1002,7 @@ app.use(function(err, req, res, next) {
   }
 });
 function reportErr(res, req, errStr) {
-  res.render("interr", { req: req, errString: errStr }); // render interr
+  res.render("error", { req: req, error: {status: "Applet", message: errStr} });
   return;
 }
 function reportApiErr(res, req, errStr) {
@@ -871,4 +1051,11 @@ function isAuthenticated(req, res, next) {
     return next();
   res.redirect('/login');
 }
+if(process.argv[1].includes('app.js')){
+  console.log("\033[33m[Warning] \033[93mMelleWS is starting in Yooo mode. This is only to be used for debugging and development purposes and not supported for production environments. Features such as logging and SSL are not available in this mode. For more information, see README.md.\033[0m");
+  app.listen(3000, () => {
+    console.log("Started in Yooo mode.");
+  })
+}
+
 module.exports = app;

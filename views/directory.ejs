@@ -3,8 +3,8 @@
   <head>
     <title>MelleWS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/directory.css' />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
@@ -13,35 +13,35 @@
     <br/>
     <br/>
     <div class="w3-container w3-center">
-      <h1><%= title %></h1>
-      <table style="width: 80%; margin: auto;">
+      <h1 class="title"><%= title %></h1>
+      <table class="files_table" style="width: 80%; margin: auto;">
         <tr>
           <% if(isUser){ %>
             <% if(typeof curfol != "undefined"){ %>
               <% if(curfol == "./public/user/" + req.session.user.username + "//"){ %>
-                <td>/</td>
+                <td class="directory_path">/</td>
               <% } else { %>
-                <td>/<%= curfol.replace("./public/user/" + req.session.user.username + "/","") %></td>
+                <td class="directory_path">/<%= curfol.replace("./public/user/" + req.session.user.username + "/","") %></td>
               <% } %>
             <% } else { %>
-              <td>Unknown directory</td>
+              <td class="directory_path">Unknown directory</td>
             <% } %>
           <% } else { %>
             <% if(typeof curfol != "undefined"){ %>
               <% if(curfol == "./public/direct//"){ %>
-                <td>/</td>
+                <td class="directory_path">/</td>
               <% } else { %>
-                <td>/<%= curfol.replace("./public/direct/","") %></td>
+                <td class="directory_path">/<%= curfol.replace("./public/direct/","") %></td>
               <% } %>
             <% } else { %>
-              <td>Unknown directory</td>
+              <td class="directory_path">Unknown directory</td>
             <% } %>
           <% } %>
         </tr>
         <tr>
-          <td><strong>Name</strong></td>
-          <td><strong>Type</strong></td>
-          <td><strong>Upload date</strong></td>
+          <td class="table_headers"><strong>Name</strong></td>
+          <td class="table_headers"><strong>Type</strong></td>
+          <td class="table_headers <% if(!isUser) {%>date<% } %>"><strong>Upload date</strong></td>
           <% if(isUser){ %>
             <td><strong>Actions</strong></td>
           <% } %>
@@ -76,7 +76,7 @@
           </tr>
         <% } %>
         <% dirArray.forEach(function(file){%>
-          <tr>
+          <tr class="directory_entry">
             <% if(file.type == "directory"){ %>
               <td><span><svg class="icon svg-icon svg-baseline" viewBox="0 0 20 20">
                 <path d="M17.927,5.828h-4.41l-1.929-1.961c-0.078-0.079-0.186-0.125-0.297-0.125H4.159c-0.229,0-0.417,0.188-0.417,0.417v1.669H2.073c-0.229,0-0.417,0.188-0.417,0.417v9.596c0,0.229,0.188,0.417,0.417,0.417h15.854c0.229,0,0.417-0.188,0.417-0.417V6.245C18.344,6.016,18.156,5.828,17.927,5.828 M4.577,4.577h6.539l1.231,1.251h-7.77V4.577z M17.51,15.424H2.491V6.663H17.51V15.424z"></path>
@@ -101,8 +101,7 @@
                 <% } else { %>
                   <path d="M15.475,6.692l-4.084-4.083C11.32,2.538,11.223,2.5,11.125,2.5h-6c-0.413,0-0.75,0.337-0.75,0.75v13.5c0,0.412,0.337,0.75,0.75,0.75h9.75c0.412,0,0.75-0.338,0.75-0.75V6.94C15.609,6.839,15.554,6.771,15.475,6.692 M11.5,3.779l2.843,2.846H11.5V3.779z M14.875,16.75h-9.75V3.25h5.625V7c0,0.206,0.168,0.375,0.375,0.375h3.75V16.75z"></path>
                 <% } %>
-                <% console.log("CURFOL = " + curfol) %>
-              </svg>  <a href="<%= curfol.replace("./public","") + encodeURIComponent(file.name) %>" class="item text" download="<%= decodeURIComponent(file.name) %>"><%= decodeURIComponent(file.name) %></a></span></td>
+              </svg>  <a href="<%= curfol.replace("./public","") + file.name %>" class="item text" download="<%= decodeURIComponent(file.name) %>"><%= decodeURIComponent(file.name) %></a></span></td>
               <td><%= file.type %></td>
               <td><%= file.date %></td>
               <% if(isUser){ %>
@@ -113,7 +112,7 @@
         <% }); %>
       </table>
       <% if(isUser){ %>
-        <a href="/editmydir"><button class="w3-margin w3-button w3-teal">New</button></a>
+        <a href="/editmydir"><button class="main_btn extra_atributes">New</button></a>
       <% } %>
     </div>
   </body>
