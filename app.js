@@ -24,7 +24,7 @@ var secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
 const Keyv = require('keyv'); // legacy
-const { info } = require('console');
+const { info, profile } = require('console');
 const { report } = require('./routes/index');
 const keyv = new Keyv('sqlite://login.sqlite'); // legacy
 const keyvUsNms = new Keyv('sqlite://login.sqlite',{ // legacy
@@ -720,8 +720,21 @@ app.post('/up-edit', isAuthenticated, function(req, res){
       return;
     }
     console.log("trig " + req.body['access-type']);
-    connection.query("UPDATE `access` SET `data`='{\"type\": \"" + req.body['access-type'] + "\"}' WHERE `user` = '" + req.session.user.username + "' ")
+    connection.query("UPDATE `access` SET `data`='{\"type\": \"" + req.body['access-type'] + "\"}' WHERE `user` = '" + req.session.user.username + "' ");
     res.status(200).end();
+  }
+  else if(req.body.function == "set-settings"){
+    console.log(req.session.user.username);
+    connection.query("SELECT * FROM `userpage` WHERE `name` = '" + req.session.user.username + "'", async function(err, data){
+      if(err){
+        console.log(err);
+      }
+      var profileData = JSON.parse(data[0].data);
+      profileData['bio'] = req.body.bio;
+      console.log(profileData);
+      connection.query("UPDATE `userpage` SET `data`='" + JSON.stringify(profileData) + "' WHERE `name` = '" + req.session.user.username + "' ");
+      res.status(200).end();
+    });
   }
   else{
     reportErr(res, req, "Unknown action " + action);
@@ -732,7 +745,9 @@ app.get('/user/*', function(req, res, next){
   console.log("I got a trig!");
   var userPage = req.originalUrl.split('/')[2];
   console.log(req.originalUrl.split('/'));
-  if(req.originalUrl.split('/')[3]){
+  console.log(req.originalUrl.split('/')[3]);
+  if(req.originalUrl.split('/')[3] || req.originalUrl.split('/')[4]){
+    console.log("me getting trig?");
     if(fs.existsSync(path.normalize("./public/" + req.originalUrl))){
       if(!(req.isAuthenticated())){
         reportErr(res, req, "You need to be logged in to see private files.");
@@ -753,7 +768,8 @@ app.get('/user/*', function(req, res, next){
       });
     }
     else{
-      next();
+      reportErr(res,req,"The file does not exist.");
+      return;
     }
   }
   else {

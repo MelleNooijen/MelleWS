@@ -1,4 +1,4 @@
-0.9b1-unstable
+0.9b1-prod
 Planned features (0.9):
     [x] User Directory improvements
     [ ] Personalisation for UserPages

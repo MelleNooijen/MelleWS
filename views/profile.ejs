@@ -65,10 +65,12 @@
           <tbody>
             <tr>
               <td>About Me</td>
-              <td><textarea rows="10" cols="30" class="textarea"></textarea></td>
+              <td><textarea id="bio" rows="10" cols="30" class="textarea"></textarea></td>
             </tr>
+            
           </tbody>
         </table>
+        <button class="main_btn" onclick="setSettings()">Save</button>
       </div>
       <script>
         var url = '/api/userpage/<%= user.username %>';
@@ -145,6 +147,22 @@
             document.getElementById('acs-sel').removeAttribute('disabled');
             document.getElementById('acs-sel').value = 'private';
           }
+        }
+        function setSettings(){
+          var value = document.getElementById('bio').value;
+          console.log(value);
+          var c_http = new XMLHttpRequest();
+          c_http.open('POST', "/up-edit", false);
+          c_http.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+          c_http.send(JSON.stringify({"function": "set-settings","bio":value}));
+          console.log(c_http);
+          if(c_http.status != 200){
+            alert("An error occurred saving your settings, please try again later.");
+          }
+          else {
+            alert('Successfully set new value\n -- TODO: Add proper success messages')
+          }
+  
         }
         getPData();
         getProfilePicture();
