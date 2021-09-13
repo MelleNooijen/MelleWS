@@ -23,13 +23,9 @@ var verFile = fs.readFileSync("version.txt",{encoding: "utf-8"});
 var secrets = JSON.parse(fs.readFileSync('./secrets.json'));
 var xyears = new Date(new Date().getTime() + (1000*60*60*24*365*10)); // ~10y
 
-const Keyv = require('keyv'); // legacy
 const { info, profile } = require('console');
 const { report } = require('./routes/index');
-const keyv = new Keyv('sqlite://login.sqlite'); // legacy
-const keyvUsNms = new Keyv('sqlite://login.sqlite',{ // legacy
-  table: "usernames"
-});
+
 var flash = require('connect-flash');
 var crypto = require('crypto');
 var passport = require('passport');
