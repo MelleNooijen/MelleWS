@@ -106,7 +106,7 @@ function onRequest(request, req) {
   var res = req.req.res;
   var reqMeth = req.req.method;
   var reqReso = req.req.path;
-  var reqIp = req.req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var reqIp = req.req.headers['x-forwarded-for'] || (req.connection ? req.connection.remoteAddress : "unknown");
   var reqTime = new Date;
   if (reqIp == "::1") {
     reqIp = "local";
@@ -147,7 +147,7 @@ function onSecRequest(request, req) {
   var res = req.req.res;
   var reqMeth = req.req.method;
   var reqReso = req.req.path;
-  var reqIp = req.req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var reqIp = req.req.headers['x-forwarded-for'] || (req.connection ? req.connection.remoteAddress : "unknown");
   var reqTime = new Date;
   if (reqIp == "::1") {
     reqIp = "local";

@@ -9,6 +9,7 @@ login.sqlite
 sslcert/*
 GPUCache/*
 secrets.json
+.DS_Store
 # Logs
 logs
 *.log
