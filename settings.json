@@ -1,0 +1,5 @@
+{
+  "legacyPort": 80
+  "httpsPort": 443
+  "extraPort": 8443
+}
