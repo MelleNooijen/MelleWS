@@ -9,17 +9,11 @@ var debug = require('debug')('mellews-noview:server');
 var legHttp = require('http');
 var http = require('https');
 var https = require('https');
+var settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));
 var privateKey  = fs.readFileSync('sslcert/privkey.pem', 'utf8');
 var certificate = fs.readFileSync('sslcert/cert.pem', 'utf8');
 var colors = require('colors');
 var credentials = {key: privateKey, cert: certificate};
-
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || '80');
-app.set('port', port);
 
 /**
  * Create HTTP server.
@@ -30,9 +24,9 @@ var httpsServer = https.createServer(credentials, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-legacyServer.listen(80);
-server.listen(443);
-httpsServer.listen(8443);
+legacyServer.listen(settings.legacyPort);
+server.listen(settings.httpsPort);
+httpsServer.listen(settings.extraPort);
 legacyServer.on('error', onError);
 legacyServer.on('listening', onListening);
 legacyServer.on('request', onSecRequest);
